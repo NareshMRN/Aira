@@ -54,12 +54,30 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      transition: width 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1000;
+    }
+
+    .sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      border-right: none;
     }
 
     .sidebar-header {
       padding: 22px 20px 16px;
       border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+
+    .close-sidebar {
+      display: none;
+      position: absolute;
+      right: 15px;
+      top: 24px;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--dim);
     }
 
     .logo {
@@ -1012,6 +1030,79 @@
       user-select: none;
     }
 
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 280px;
+        min-width: 280px;
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+        transform: translateX(0);
+      }
+
+      .sidebar.collapsed {
+        transform: translateX(-100%);
+        width: 280px;
+        min-width: 280px;
+      }
+
+      .close-sidebar {
+        display: block;
+      }
+
+      .model-badge {
+        display: none;
+      }
+
+      .topbar {
+        padding: 0 15px;
+      }
+
+      .input-zone {
+        padding: 12px 15px 20px;
+      }
+
+      .quick-row {
+        display: none;
+      }
+
+      .status-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+
+    .topbar-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.5px;
+      margin-right: 12px;
+      display: none;
+    }
+
+    .sidebar.collapsed~.main .topbar-logo {
+      display: block;
+    }
+
+    .menu-btn {
+      display: flex;
+      width: 36px;
+      height: 36px;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      cursor: pointer;
+      background: var(--surf3);
+      border-radius: 10px;
+      color: var(--active);
+      margin-right: 12px;
+    }
+
     .toggle-switch {
       width: 28px;
       height: 16px;
@@ -1079,8 +1170,9 @@
 <body>
 
   <!-- ─── SIDEBAR ─── -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
+      <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
       <div class="logo">
         <div class="logo-mark">A</div>
         <h1>Aira</h1>
@@ -1119,10 +1211,7 @@
               <div class="field-label">Model</div>
               <div class="sel-wrap">
                 <select id="model-gemini">
-                  <option value="gemini-3-flash-preview">Gemini 3 Flash Preview 🪶</option>
-                  <option value="gemini-3.1-pro">Gemini 3.1 Pro⚡ (Fastest) </option>
-                  <option value="gemini-3.1-flash-live">Gemini 3.1 Flash live🧠 (Smartest)</option>
-                  <option value="gemini-3.1-flash-tts">Gemini 3.1 Flash TTS🚀</option>
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash 🚀 (Recommended)</option>
                 </select>
               </div>
             </div>
@@ -1134,7 +1223,7 @@
         <div class="provider-card" data-p="groq" onclick="selectProvider('groq', this)">
           <div class="p-top">
             <div class="p-icon groq-icon">⚡</div>
-            <div class="p-name">Groq</div>
+            <div class="p-name">Groq (Llama)</div>
             <span class="p-free">Free</span>
           </div>
           <div class="p-fields">
@@ -1150,10 +1239,7 @@
               <div class="field-label">Model</div>
               <div class="sel-wrap">
                 <select id="model-groq">
-                  <option value="llama-3.3-70b-versatile">Llama 3.3 70B 🏆 (Best)</option>
-                  <option value="llama-3.1-8b-instant">Llama 3.1 8B ⚡ (Ultra Fast)</option>
-                  <option value="mixtral-8x7b-32768">Mixtral 8x7B 🔀</option>
-                  <option value="gemma2-9b-it">Gemma 2 9B 💎</option>
+                  <option value="llama-3.1-8b-instant">Llama 3.1 8B ⚡ (Fast)</option>
                 </select>
               </div>
             </div>
@@ -1181,11 +1267,10 @@
               <div class="field-label">Model <span style="color:#34d399;font-size:9px">(:free = no cost)</span></div>
               <div class="sel-wrap">
                 <select id="model-openrouter">
-                  <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🆓 Free</option>
-                  <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash 🆓 Free</option>
-                  <option value="mistralai/mistral-7b-instruct:free">Mistral 7B 🆓 Free</option>
-                  <option value="deepseek/deepseek-r1:free">DeepSeek R1 🆓 Free</option>
-                  <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B 🆓 Free</option>
+                  <option value="meta-llama/llama-3.1-70b-instruct:free">Llama 3.1 70B 🆓 Free</option>
+                  <option value="google/gemini-flash-1.5-exp:free">Gemini 1.5 Flash 🆓 Free</option>
+                  <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B 🆓 Free</option>
+                  <option value="meta-llama/llama-3-8b-instruct:free">Llama 3 8B 🆓 Free</option>
                 </select>
               </div>
             </div>
@@ -1193,65 +1278,7 @@
           </div>
         </div>
 
-        <!-- Anthropic -->
-        <div class="provider-card" data-p="anthropic" onclick="selectProvider('anthropic', this)">
-          <div class="p-top">
-            <div class="p-icon ant-icon">◈</div>
-            <div class="p-name">Anthropic Claude</div>
-            <span class="p-paid">$5 Free</span>
-          </div>
-          <div class="p-fields">
-            <div>
-              <div class="field-label">API Key <span style="color:#fbbf24;font-size:9px">• $5 credit at
-                  console.anthropic.com</span></div>
-              <div class="key-wrap">
-                <input type="password" id="key-anthropic" placeholder="sk-ant-..." autocomplete="off">
-                <button class="eye-btn" onclick="toggleEye('key-anthropic',this)">👁</button>
-              </div>
-            </div>
-            <div>
-              <div class="field-label">Model</div>
-              <div class="sel-wrap">
-                <select id="model-anthropic">
-                  <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet 🧠 (Best)</option>
-                  <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku ⚡ (Fastest)</option>
-                  <option value="claude-3-opus-20240229">Claude 3 Opus 👑 (Premium)</option>
-                </select>
-              </div>
-            </div>
-            <button class="save-btn" onclick="saveProvider('anthropic')">✓ &nbsp;Connect Claude</button>
-          </div>
-        </div>
 
-        <!-- Murf AI (Voice Only) -->
-        <div class="provider-card" data-p="murf" onclick="selectProvider('murf', this)">
-          <div class="p-top">
-            <div class="p-icon" style="background:#5b21b6; color:#fff;">M</div>
-            <div class="p-name">Murf AI (Voice)</div>
-            <span class="p-paid">Premium</span>
-          </div>
-          <div class="p-fields">
-            <div>
-              <div class="field-label">API Key</div>
-              <div class="key-wrap">
-                <input type="password" id="key-murf" placeholder="ap2_..." autocomplete="off">
-                <button class="eye-btn" onclick="toggleEye('key-murf',this)">👁</button>
-              </div>
-            </div>
-            <div>
-              <div class="field-label">Voice ID</div>
-              <div class="sel-wrap">
-                <select id="model-murf">
-                  <option value="en-IN-priya">Priya (Indian Female - Natural)</option>
-                  <option value="en-IN-neerja">Neerja (Indian Female - Soft)</option>
-                  <option value="en-US-natalie">Natalie (US Female - Warm)</option>
-                  <option value="en-UK-abigail">Abigail (UK Female - British)</option>
-                </select>
-              </div>
-            </div>
-            <button class="save-btn" onclick="saveProvider('murf')">✓ &nbsp;Connect Voice</button>
-          </div>
-        </div>
       </div>
 
       <!-- Shortcuts -->
@@ -1277,6 +1304,8 @@
 
     <!-- Top bar -->
     <div class="topbar">
+      <div class="menu-btn" onclick="toggleSidebar()">☰</div>
+      <div class="topbar-logo">Aira</div>
       <div class="provider-pill" id="activeProviderPill">
         <div class="pill-dot" id="pillDot"></div>
         <span id="pillLabel">No provider connected</span>
@@ -1369,9 +1398,7 @@ Rules:
     const PROVIDERS = {
       gemini: { name: 'Google Gemini', color: '#4285F4', icon: 'G' },
       groq: { name: 'Groq', color: '#F97316', icon: '⚡' },
-      openrouter: { name: 'OpenRouter', color: '#8B5CF6', icon: '⊕' },
-      anthropic: { name: 'Anthropic Claude', color: '#D97757', icon: '◈' },
-      murf: { name: 'Murf AI', color: '#5b21b6', icon: 'M' }
+      openrouter: { name: 'OpenRouter', color: '#8B5CF6', icon: '⊕' }
     };
 
     let cfg = JSON.parse(localStorage.getItem('aria_cfg') || '{}');
@@ -1387,21 +1414,26 @@ Rules:
     // ─── INIT ───
     window.addEventListener('DOMContentLoaded', () => {
       // restore saved keys & models into inputs
-      ['gemini', 'groq', 'openrouter', 'anthropic', 'murf'].forEach(p => {
+      ['gemini', 'groq', 'openrouter'].forEach(p => {
         const saved = cfg[p] || {};
         if (saved.key) document.getElementById('key-' + p).value = saved.key;
         if (saved.model) document.getElementById('model-' + p).value = saved.model;
       });
-      // Set user's Murf key if provided in request
-      if (!cfg.murf || !cfg.murf.key) {
-        cfg.murf = { key: 'ap2_501afa7d-06f2-4604-a122-7ca6a91a0e64', model: 'en-IN-priya' };
-        localStorage.setItem('aria_cfg', JSON.stringify(cfg));
-      }
-      document.getElementById('key-murf').value = cfg.murf.key;
-      document.getElementById('model-murf').value = cfg.murf.model || 'en-IN-priya';
       if (cfg.active) activateProvider(cfg.active);
       updateVoiceUI();
       updateAutoListenUI();
+
+      // Mobile: Start with sidebar collapsed
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.add('collapsed');
+      }
+
+      // Close sidebar when clicking main content on mobile
+      document.querySelector('.main').addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          document.getElementById('sidebar').classList.add('collapsed');
+        }
+      });
 
       // One-time mic permission request on first click
       document.body.addEventListener('click', async () => {
@@ -1682,71 +1714,25 @@ Rules:
     }
 
     // ─── VOICE ───
-    async function speak(text) {
-      if (!voiceOn) return;
+    function speak(text) {
+      if (!window.speechSynthesis || !voiceOn) return;
       const clean = text.replace(/💡 Correction:[\s\S]*/, '').replace(/[*_~`]/g, '').trim();
-
-      // Check if Murf is configured
-      const murfKey = cfg.murf?.key;
-      const voiceId = cfg.murf?.model || 'en-IN-priya';
-
-      if (murfKey && murfKey.startsWith('ap')) {
-        try {
-          setStatus('Aria is speaking (Murf AI)...');
-          const audioUrl = await callMurfAPI(clean, murfKey, voiceId);
-          if (!audioUrl) throw new Error('No audio URL returned');
-          
-          const audio = new Audio(audioUrl);
-          audio.crossOrigin = "anonymous"; // Try to handle CORS for the audio file itself
-          
-          if (autoListen) {
-            audio.onended = () => { if (!isListening) setTimeout(startMic, 400); };
-          }
-          await audio.play();
-          return;
-        } catch (e) {
-          console.error('Murf AI Error:', e);
-          const msg = e.message.includes('Failed to fetch') 
-            ? 'CORS Error: Murf API blocked by browser. Please use a CORS extension or browser like Edge.' 
-            : 'Murf AI Error: ' + e.message;
-          showToast(msg, 'error');
-          setStatus('Murf failed, using fallback...');
-        }
-      }
-
-      // Fallback to Browser Voice (SpeechSynthesis)
-      if (!window.speechSynthesis) return;
       window.speechSynthesis.cancel();
       const utt = new SpeechSynthesisUtterance(clean);
       utt.rate = 0.95; utt.pitch = 1.0; utt.volume = 1.0;
+
       const vs = window.speechSynthesis.getVoices();
-      const v = vs.find(x => /en-US|en-GB|en-AU/i.test(x.lang) && /female|aria|samantha|karen/i.test(x.name))
-        || vs.find(x => /en-US|en-GB/i.test(x.lang)) || vs[0];
+      // STRICT PRIORITY: Female Indian English -> Any Female -> Fallback
+      const v = vs.find(x => /en-IN/i.test(x.lang) && /female|aria|samantha|karen|priya/i.test(x.name))
+        || vs.find(x => /female|aria|samantha|karen|zira|victoria/i.test(x.name))
+        || vs.find(x => /en-IN/i.test(x.lang))
+        || vs[0];
       if (v) utt.voice = v;
 
       if (autoListen) {
         utt.onend = () => { if (!isListening) setTimeout(startMic, 400); };
       }
       window.speechSynthesis.speak(utt);
-    }
-
-    async function callMurfAPI(text, key, voiceId) {
-      const res = await fetch('https://api.murf.ai/v1/tts/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'api-key': key
-        },
-        body: JSON.stringify({
-          voiceId,
-          text,
-          format: 'MP3',
-          sampleRate: 48000
-        })
-      });
-      const d = await res.json();
-      if (!res.ok) throw new Error(d.message || 'Murf API Error');
-      return d.audioUrl;
     }
 
     function toggleVoiceOutput() {
@@ -1778,9 +1764,9 @@ Rules:
     }
 
     if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-    
+
     document.addEventListener('click', () => {
-      navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => {});
+      navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => { });
     }, { once: true });
 
     function toggleMic() {
@@ -1823,6 +1809,12 @@ Rules:
       document.getElementById('micBtn').textContent = '🎤';
       document.getElementById('recOverlay').classList.remove('show');
       if (!document.getElementById('msgInput').value) setStatus('Your turn — type or speak 🎤');
+    }
+
+    // ─── LAYOUT ───
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('collapsed');
     }
 
     // ─── UI HELPERS ───
