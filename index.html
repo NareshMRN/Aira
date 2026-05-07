@@ -1074,6 +1074,49 @@
         align-items: flex-start;
         gap: 10px;
       }
+
+      .sidebar-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(2px);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s;
+      }
+
+      .sidebar:not(.collapsed) + .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .topbar {
+        padding: 10px 12px;
+        gap: 8px;
+      }
+
+      .provider-pill {
+        padding: 4px 10px 4px 6px;
+        max-width: 130px;
+        gap: 5px;
+      }
+
+      #pillLabel {
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .topbar-right {
+        gap: 6px;
+      }
+    }
+
+    .sidebar-overlay {
+      display: none;
     }
 
     .topbar-logo {
@@ -1298,6 +1341,7 @@
 
     </div>
   </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
   <!-- ─── MAIN ─── -->
   <main class="main">
@@ -1428,13 +1472,6 @@ Rules:
         document.getElementById('sidebar').classList.add('collapsed');
       }
 
-      // Close sidebar when clicking main content on mobile
-      document.querySelector('.main').addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          document.getElementById('sidebar').classList.add('collapsed');
-        }
-      });
-
       // One-time mic permission request on first click
       document.body.addEventListener('click', async () => {
         if (!window.micAuthorized) {
@@ -1469,6 +1506,7 @@ Rules:
 
       activateProvider(p);
       showToast('Connected to ' + PROVIDERS[p].name + ' 🎉', 'success');
+      closeSidebarIfMobile();
     }
 
     function activateProvider(p) {
@@ -1817,6 +1855,24 @@ Rules:
       sb.classList.toggle('collapsed');
     }
 
+    function closeSidebarIfMobile() {
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.add('collapsed');
+      }
+    }
+
+    function sendShortcut(el) {
+      const txt = el.innerText.replace(/^[^\s]+\s/, ''); // remove icon
+      document.getElementById('msgInput').value = txt;
+      sendMsg();
+      closeSidebarIfMobile();
+    }
+
+    function useQuick(el) {
+      document.getElementById('msgInput').value = el.innerText;
+      sendMsg();
+    }
+
     // ─── UI HELPERS ───
     function onKey(e) {
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
@@ -1835,8 +1891,6 @@ Rules:
       document.getElementById('chatArea').innerHTML = '<div class="welcome" id="welcome"><div class="welcome-glow">A</div><h2>Chat cleared ✓</h2><p>Ready to start a fresh conversation!</p></div>';
       window.speechSynthesis?.cancel();
     }
-    function sendShortcut(el) { document.getElementById('msgInput').value = el.textContent.trim().replace(/^[^\s]+\s/, ''); sendMsg(); }
-    function useQuick(el) { document.getElementById('msgInput').value = el.textContent; sendMsg(); }
     function setStatus(m) { document.getElementById('statusMsg').textContent = m; }
 
     let toastTimer;
