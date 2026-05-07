@@ -1270,13 +1270,8 @@
             <span class="p-free">Free</span>
           </div>
           <div class="p-fields">
-            <div>
-              <div class="field-label">API Key <span style="color:#34d399;font-size:9px">• Free at
-                  console.groq.com</span></div>
-              <div class="key-wrap">
-                <input type="password" id="key-groq" placeholder="gsk_..." autocomplete="off">
-                <button class="eye-btn" onclick="toggleEye('key-groq',this)">👁</button>
-              </div>
+            <div style="margin-bottom: 12px; font-size: 11px; color: #5c6080; background: #fff3ec; padding: 8px; border-radius: 6px; border: 1px solid #fcd9c0;">
+              Groq is <strong>built-in</strong> and ready to use! Just select the model and click connect.
             </div>
             <div>
               <div class="field-label">Model</div>
@@ -1457,12 +1452,32 @@ Rules:
 
     // ─── INIT ───
     window.addEventListener('DOMContentLoaded', () => {
+      const GROQ_KEY = "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";
+      
+      // Auto-configure Groq as built-in
+      if (!cfg.groq) cfg.groq = { key: GROQ_KEY, model: 'llama-3.1-8b-instant' };
+      else cfg.groq.key = GROQ_KEY; 
+
+      // Set default provider to groq if none active
+      if (!cfg.active) {
+        cfg.active = 'groq';
+        localStorage.setItem('aria_cfg', JSON.stringify(cfg));
+      }
+
       // restore saved keys & models into inputs
-      ['gemini', 'groq', 'openrouter'].forEach(p => {
+      ['gemini', 'openrouter'].forEach(p => {
         const saved = cfg[p] || {};
-        if (saved.key) document.getElementById('key-' + p).value = saved.key;
-        if (saved.model) document.getElementById('model-' + p).value = saved.model;
+        const keyEl = document.getElementById('key-' + p);
+        const modelEl = document.getElementById('model-' + p);
+        if (saved.key && keyEl) keyEl.value = saved.key;
+        if (saved.model && modelEl) modelEl.value = saved.model;
       });
+
+      // restore groq model
+      if (cfg.groq.model) {
+        document.getElementById('model-groq').value = cfg.groq.model;
+      }
+
       if (cfg.active) activateProvider(cfg.active);
       updateVoiceUI();
       updateAutoListenUI();
@@ -1494,9 +1509,16 @@ Rules:
     }
 
     function saveProvider(p) {
-      const key = document.getElementById('key-' + p).value.trim();
       const model = document.getElementById('model-' + p).value;
-      if (!key) { showToast('Please enter your API key first', 'error'); return; }
+      let key = "";
+      
+      if (p === 'groq') {
+        key = "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";
+      } else {
+        const keyEl = document.getElementById('key-' + p);
+        key = keyEl ? keyEl.value.trim() : "";
+        if (!key) { showToast('Please enter your API key first', 'error'); return; }
+      }
 
       if (!cfg[p]) cfg[p] = {};
       cfg[p].key = key;
