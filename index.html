@@ -397,17 +397,34 @@ textarea::placeholder { color:#b0b8d8; }
 .btn-send:disabled { background:#e0e4f5; color:#b0b8d8; cursor:not-allowed; transform:none; box-shadow:none; }
 
 /* Status + toggles */
-.status-row { display:flex; align-items:center; justify-content:space-between; margin-top:9px; flex-wrap:wrap; gap:8px; }
-.status-msg { font-size:11px; color:var(--muted); }
-.toggles { display:flex; gap:14px; }
+.status-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:8px; gap:6px;
+}
+.status-msg { font-size:11px; color:var(--muted); flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.toggles { display:flex; gap:10px; flex-shrink:0; }
 .tog-item {
   display:flex; align-items:center; gap:5px;
   font-size:11px; color:var(--muted); cursor:pointer; user-select:none;
+  white-space:nowrap;
 }
-.tog-sw { width:28px; height:16px; border-radius:8px; background:var(--dim); position:relative; transition:background .2s; }
+.tog-sw { width:28px; height:16px; border-radius:8px; background:var(--dim); position:relative; transition:background .2s; flex-shrink:0; }
 .tog-sw.on { background:var(--indigo); }
 .tog-knob { position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:#fff; transition:left .2s; }
 .tog-sw.on .tog-knob { left:14px; }
+
+/* Mobile toggle buttons in topbar */
+.topbar-tog {
+  display:none;
+  align-items:center; gap:6px;
+  font-size:10px; color:var(--muted); cursor:pointer; user-select:none;
+  background:var(--surf2); border:1.5px solid #e0e4f5;
+  border-radius:8px; padding:4px 8px;
+  transition:all .15s;
+}
+.topbar-tog.on { background:#eef1ff; border-color:#a5b0e8; color:var(--indigo); }
+.topbar-tog-dot { width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; transition:background .2s; }
+.topbar-tog.on .topbar-tog-dot { background:var(--indigo); }
 
 /* Toast */
 .toast {
@@ -442,8 +459,7 @@ textarea::placeholder { color:#b0b8d8; }
     position:fixed; top:0; left:0; bottom:0;
     transform:translateX(-100%);
     box-shadow:4px 0 24px rgba(0,0,0,.15);
-    width:290px;
-    z-index:200;
+    width:290px; z-index:200;
   }
   .sidebar.open { transform:translateX(0); }
   .sidebar-close { display:flex; align-items:center; justify-content:center; }
@@ -451,35 +467,50 @@ textarea::placeholder { color:#b0b8d8; }
   .sidebar-overlay.show { opacity:1; pointer-events:auto; }
 
   .hamburger { display:flex; align-items:center; justify-content:center; }
-  .main { height:100vh; flex:1; }
-  .topbar { padding:10px 14px; gap:8px; }
-  .provider-pill { font-size:11px; padding:4px 9px 4px 6px; }
-  .model-badge { display:none; }
+  .main { height:100vh; flex:1; display:flex; flex-direction:column; }
 
-  .chat-area { padding:16px 14px; gap:14px; }
+  /* Topbar — compact, show mobile toggles */
+  .topbar { padding:8px 12px; gap:6px; }
+  .provider-pill { font-size:11px; padding:4px 8px 4px 6px; }
+  .model-badge { display:none; }
+  .topbar-tog { display:flex; }
+  /* hide the icon-btn voice on mobile (replaced by topbar-tog) */
+  #voiceBtn { display:none; }
+
+  /* Chat */
+  .chat-area { padding:12px 12px; gap:12px; flex:1; }
   .msg-row { max-width:100%; }
   .bubble { font-size:13px; padding:10px 13px; }
 
-  .input-zone { padding:12px 14px 14px; }
-  .quick { font-size:11px; padding:4px 10px; }
-  textarea { font-size:13px; padding:10px 12px; }
-  .btn-mic, .btn-send { width:42px; height:42px; }
+  /* Input zone — as slim as possible */
+  .input-zone { padding:8px 12px 10px; flex-shrink:0; }
+  .quick-row { margin-bottom:8px; gap:5px; }
+  .quick { font-size:10.5px; padding:4px 9px; }
+  .input-row { gap:7px; }
+  textarea { font-size:13px; padding:9px 11px; min-height:40px; }
+  .btn-mic, .btn-send { width:40px; height:40px; font-size:16px; }
 
-  .status-row { flex-direction:column; align-items:flex-start; gap:6px; }
-  .toggles { gap:12px; }
+  /* Status row — hide toggles (they're in topbar now), show only status text */
+  .status-row { margin-top:6px; }
+  .toggles { display:none; }
+  .status-msg { font-size:10.5px; }
 
-  .welcome { padding:30px 14px; }
-  .welcome-glow { width:64px; height:64px; font-size:26px; }
-  .welcome h2 { font-size:19px; }
+  .welcome { padding:24px 14px; }
+  .welcome-glow { width:60px; height:60px; font-size:24px; }
+  .welcome h2 { font-size:18px; }
+  .welcome p { font-size:12.5px; }
 
-  .toast { right:14px; bottom:14px; left:14px; max-width:unset; }
+  .toast { right:10px; bottom:10px; left:10px; max-width:unset; font-size:11.5px; }
 }
 
 @media (max-width: 380px) {
-  .topbar { padding:8px 12px; }
-  .chat-area { padding:12px 10px; }
-  .input-zone { padding:10px 12px 12px; }
+  .topbar { padding:7px 10px; gap:4px; }
+  .topbar-tog span { display:none; } /* show only dot on very small screens */
+  .topbar-tog { padding:5px 6px; }
+  .chat-area { padding:10px 10px; }
+  .input-zone { padding:7px 10px 9px; }
   .bubble { font-size:12.5px; }
+  .btn-mic, .btn-send { width:38px; height:38px; }
 }
 </style>
 </head>
@@ -552,7 +583,7 @@ textarea::placeholder { color:#b0b8d8; }
           <div class="field-label">Model</div>
           <div class="sel-wrap">
             <select id="model-gemini">
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash⚡Free</option>
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash ⚡ (Latest, Free)</option>
             </select>
           </div>
           <button class="connect-btn" onclick="saveProvider('gemini')">✓ Connect Gemini</button>
@@ -577,11 +608,10 @@ textarea::placeholder { color:#b0b8d8; }
           <div class="sel-wrap">
             <select id="model-openrouter">
               <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🆓 (Best Free)</option>
-              <option value="qwen/qwen3.6-35b-a3b">Qwen 3.6 35B 🆓</option>
-              <option value="mistralai/ministral-8b-2512">Mistral 3 8B 🆓 (Fast)</option>
-              <option value="google/gemma-4-31b-it:free">Gemma 4 31B 🆓</option>
-              <option value="anthropic/claude-haiku-latest">Claude Haiku Latest 🆓</option>
-              <option value="anthropic/claude-sonnet-latest">Claude Sonnet Latest 🆓</option>
+              <option value="deepseek/deepseek-r1:free">DeepSeek R1 🆓 (Reasoning)</option>
+              <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B 🆓</option>
+              <option value="mistralai/mistral-7b-instruct:free">Mistral 7B 🆓 (Fast)</option>
+              <option value="google/gemma-3-12b-it:free">Gemma 3 12B 🆓</option>
             </select>
           </div>
           <button class="connect-btn" onclick="saveProvider('openrouter')">✓ Connect OpenRouter</button>
@@ -639,6 +669,15 @@ textarea::placeholder { color:#b0b8d8; }
     </div>
     <div class="model-badge" id="modelBadge">Select a provider →</div>
     <div class="topbar-right">
+      <!-- Mobile-only toggle buttons -->
+      <div class="topbar-tog" id="topbarAuto" onclick="toggleAutoListen()" title="Hands-free">
+        <div class="topbar-tog-dot"></div>
+        <span>Hands-free</span>
+      </div>
+      <div class="topbar-tog on" id="topbarVoice" onclick="toggleVoice()" title="Voice output">
+        <div class="topbar-tog-dot"></div>
+        <span>Voice</span>
+      </div>
       <div class="icon-btn" onclick="clearChat()" title="Clear chat">🗑</div>
       <div class="icon-btn" id="voiceBtn" onclick="toggleVoice()" title="Toggle voice">🔊</div>
     </div>
@@ -1080,6 +1119,12 @@ function updateVoiceUI() {
   document.getElementById('voiceSw').className = 'tog-sw' + (voiceOn ? ' on' : '');
   document.getElementById('voiceBtn').textContent = voiceOn ? '🔊' : '🔇';
   document.getElementById('voiceBtn').className   = 'icon-btn' + (voiceOn ? ' voice-active' : '');
+  // sync mobile topbar pill
+  const tv = document.getElementById('topbarVoice');
+  if (tv) {
+    tv.classList.toggle('on', voiceOn);
+    tv.querySelector('.topbar-tog-dot').style.background = voiceOn ? 'var(--indigo)' : 'var(--dim)';
+  }
 }
 
 function toggleAutoListen() {
@@ -1090,6 +1135,12 @@ function toggleAutoListen() {
 }
 function updateAutoUI() {
   document.getElementById('autoSw').className = 'tog-sw' + (autoListen ? ' on' : '');
+  // sync mobile topbar pill
+  const ta = document.getElementById('topbarAuto');
+  if (ta) {
+    ta.classList.toggle('on', autoListen);
+    ta.querySelector('.topbar-tog-dot').style.background = autoListen ? 'var(--indigo)' : 'var(--dim)';
+  }
 }
 
 // ══════════════════════════
