@@ -1,0 +1,50 @@
+name: Deploy Aria to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main          # runs every time you push to main
+  workflow_dispatch:  # allows manual trigger from GitHub UI
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+
+      # 1. Check out your code
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2. Inject the Groq API key from GitHub Secrets into index.html
+      - name: Inject Groq API Key
+        run: |
+          sed -i "s|__GROQ_API_KEY__|${{ secrets.GROQ_API_KEY }}|g" index.html
+          echo "✅ Key injected successfully"
+
+      # 3. Set up GitHub Pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 4. Upload the built site
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'        # uploads everything in root (index.html etc.)
+
+      # 5. Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
