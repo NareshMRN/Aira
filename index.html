@@ -1,1929 +1,1194 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aira English Practice AI</title>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Instrument+Sans:wght@300;400;500&display=swap"
-    rel="stylesheet">
-  <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0
-    }
-
-    :root {
-      --bg: #F0F4FF;
-      --surf1: #FFFFFF;
-      --surf2: #F5F7FF;
-      --surf3: #EBF0FF;
-      --border: rgba(99, 102, 241, 0.12);
-      --border2: rgba(99, 102, 241, 0.25);
-      --text: #1a1d2e;
-      --muted: #5c6080;
-      --dim: #9da3c0;
-
-      --gemini: #1a73e8;
-      --groq: #ea580c;
-      --openrouter: #7c3aed;
-      --anthropic: #b45309;
-      --active: #4f46e5;
-    }
-
-    body {
-      font-family: 'Instrument Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      overflow: hidden;
-      font-size: 14px;
-    }
-
-    /* ─── SIDEBAR ─── */
-    .sidebar {
-      width: 300px;
-      min-width: 300px;
-      background: var(--surf1);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1000;
-    }
-
-    .sidebar.collapsed {
-      width: 0;
-      min-width: 0;
-      border-right: none;
-    }
-
-    .sidebar-header {
-      padding: 22px 20px 16px;
-      border-bottom: 1px solid var(--border);
-      position: relative;
-    }
-
-    .close-sidebar {
-      display: none;
-      position: absolute;
-      right: 15px;
-      top: 24px;
-      font-size: 20px;
-      cursor: pointer;
-      color: var(--dim);
-    }
-
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .logo-mark {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #4285F4 0%, #8B5CF6 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      color: #fff;
-    }
-
-    .logo h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-    }
-
-    .logo-sub {
-      font-size: 11px;
-      color: var(--muted);
-      padding-left: 44px;
-    }
-
-    .sidebar-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
-    }
-
-    .sidebar-body::-webkit-scrollbar {
-      width: 3px;
-    }
-
-    .sidebar-body::-webkit-scrollbar-thumb {
-      background: #c7d0f0;
-      border-radius: 3px;
-    }
-
-    /* Section label */
-    .sec-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      color: var(--muted);
-      text-transform: uppercase;
-      margin: 0 0 10px;
-    }
-
-    /* Provider cards */
-    .providers {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 24px;
-    }
-
-    .provider-card {
-      background: var(--surf2);
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      padding: 12px 14px;
-      cursor: pointer;
-      transition: all 0.18s;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.06);
-    }
-
-    .provider-card::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      border-radius: 12px 0 0 12px;
-      background: transparent;
-      transition: background 0.18s;
-    }
-
-    .provider-card:hover {
-      border-color: var(--border2);
-      background: #fff;
-      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
-      transform: translateY(-1px);
-    }
-
-    .provider-card.active {
-      border-color: var(--active);
-      background: #fff;
-      box-shadow: 0 4px 20px rgba(79, 70, 229, 0.15);
-    }
-
-    .provider-card.active::before {
-      background: var(--active);
-    }
-
-    .provider-card[data-p="gemini"] {
-      --active: var(--gemini);
-    }
-
-    .provider-card[data-p="groq"] {
-      --active: var(--groq);
-    }
-
-    .provider-card[data-p="openrouter"] {
-      --active: var(--openrouter);
-    }
-
-    .provider-card[data-p="anthropic"] {
-      --active: var(--anthropic);
-    }
-
-    .p-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .p-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      font-weight: 700;
-      flex-shrink: 0;
-      font-family: 'Syne', sans-serif;
-    }
-
-    .gemini-icon {
-      background: #e8f0fe;
-      color: #1a73e8;
-      border: 1.5px solid #bbcffd;
-    }
-
-    .groq-icon {
-      background: #fff3ec;
-      color: #ea580c;
-      border: 1.5px solid #fcd9c0;
-    }
-
-    .or-icon {
-      background: #f3eeff;
-      color: #7c3aed;
-      border: 1.5px solid #d9c5fb;
-    }
-
-    .ant-icon {
-      background: #fef3e2;
-      color: #b45309;
-      border: 1.5px solid #fcd89a;
-    }
-
-    .p-name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .p-free {
-      margin-left: auto;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 3px 8px;
-      border-radius: 20px;
-      background: #d1fae5;
-      color: #065f46;
-      border: 1px solid #6ee7b7;
-      text-transform: uppercase;
-    }
-
-    .p-paid {
-      margin-left: auto;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 3px 8px;
-      border-radius: 20px;
-      background: #fef3c7;
-      color: #92400e;
-      border: 1px solid #fcd34d;
-      text-transform: uppercase;
-    }
-
-    /* API key field inside card */
-    .p-fields {
-      display: none;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .provider-card.active .p-fields {
-      display: flex;
-    }
-
-    .field-label {
-      font-size: 10px;
-      color: var(--muted);
-      font-weight: 500;
-      margin-bottom: 3px;
-      letter-spacing: 0.3px;
-    }
-
-    .key-wrap {
-      position: relative;
-    }
-
-    .key-wrap input {
-      width: 100%;
-      background: #fff;
-      border: 1.5px solid #d1d5f0;
-      border-radius: 8px;
-      color: #1a1d2e;
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 12px;
-      padding: 8px 36px 8px 10px;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    .key-wrap input:focus {
-      border-color: var(--active);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-    .key-wrap input::placeholder {
-      color: #b0b8d8;
-    }
-
-    .eye-btn {
-      position: absolute;
-      right: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #9da3c0;
-      font-size: 13px;
-      padding: 2px;
-      line-height: 1;
-    }
-
-    .eye-btn:hover {
-      color: #4f46e5;
-    }
-
-    .sel-wrap select {
-      width: 100%;
-      background: #fff;
-      border: 1.5px solid #d1d5f0;
-      border-radius: 8px;
-      color: #1a1d2e;
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 12px;
-      padding: 8px 10px;
-      outline: none;
-      cursor: pointer;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c6080' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 10px center;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    .sel-wrap select:focus {
-      border-color: var(--active);
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-    .sel-wrap select option {
-      background: #fff;
-      color: #1a1d2e;
-    }
-
-    .save-btn {
-      width: 100%;
-      padding: 8px;
-      border-radius: 8px;
-      border: none;
-      background: var(--active);
-      color: #fff;
-      font-family: 'Syne', sans-serif;
-      font-weight: 600;
-      font-size: 12px;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-      letter-spacing: 0.3px;
-    }
-
-    .save-btn:hover {
-      opacity: 0.88;
-    }
-
-    .save-btn:active {
-      transform: scale(0.98);
-    }
-
-    /* Status indicator */
-    .provider-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 14px;
-      background: #eef1ff;
-      border: 1px solid #c7d0f5;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #c7d0f5;
-      flex-shrink: 0;
-    }
-
-    .status-dot.active {
-      background: #10b981;
-      box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
-    }
-
-    .status-dot.error {
-      background: #ef4444;
-    }
-
-    .status-text {
-      font-size: 11px;
-      color: #5c6080;
-    }
-
-    .status-text strong {
-      color: #1a1d2e;
-      font-weight: 600;
-    }
-
-    /* Shortcuts */
-    .shortcuts {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .shortcut {
-      padding: 9px 12px;
-      background: #fff;
-      border: 1.5px solid #e0e4f5;
-      border-radius: 9px;
-      font-size: 12px;
-      color: #3d4468;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-    }
-
-    .shortcut:hover {
-      background: #eef1ff;
-      border-color: #a5b0e8;
-      color: #4f46e5;
-      transform: translateX(3px);
-    }
-
-    .shortcut-icon {
-      font-size: 14px;
-    }
-
-    /* ─── MAIN ─── */
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-width: 0;
-      background: var(--bg);
-    }
-
-    /* Top bar */
-    .topbar {
-      padding: 14px 24px;
-      border-bottom: 1px solid #e2e6f5;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: #fff;
-      flex-shrink: 0;
-      box-shadow: 0 1px 4px rgba(99, 102, 241, 0.07);
-    }
-
-    .provider-pill {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 12px 5px 8px;
-      border-radius: 20px;
-      background: #eef1ff;
-      border: 1.5px solid #c7d0f5;
-      font-size: 12px;
-      font-weight: 600;
-      color: #3d4468;
-    }
-
-    .pill-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #c7d0f5;
-    }
-
-    .model-badge {
-      font-size: 11px;
-      color: #5c6080;
-      background: #f5f7ff;
-      border: 1.5px solid #e0e4f5;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-weight: 500;
-    }
-
-    .topbar-right {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .icon-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: #f5f7ff;
-      border: 1.5px solid #e0e4f5;
-      color: #5c6080;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 15px;
-      transition: all 0.15s;
-    }
-
-    .icon-btn:hover {
-      background: #eef1ff;
-      color: #4f46e5;
-      border-color: #a5b0e8;
-      transform: scale(1.08);
-    }
-
-    /* Chat */
-    .chat-area {
-      flex: 1;
-      overflow-y: auto;
-      padding: 28px 32px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      scroll-behavior: smooth;
-      background: var(--bg);
-    }
-
-    .chat-area::-webkit-scrollbar {
-      width: 4px;
-    }
-
-    .chat-area::-webkit-scrollbar-thumb {
-      background: #c7d0f0;
-      border-radius: 4px;
-    }
-
-    /* Welcome */
-    .welcome {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .welcome-glow {
-      width: 80px;
-      height: 80px;
-      border-radius: 24px;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Syne', sans-serif;
-      font-size: 32px;
-      font-weight: 700;
-      color: #fff;
-      box-shadow: 0 20px 60px rgba(79, 70, 229, 0.3);
-    }
-
-    .welcome h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: -0.3px;
-      color: #1a1d2e;
-    }
-
-    .welcome p {
-      font-size: 13px;
-      color: #5c6080;
-      max-width: 380px;
-      line-height: 1.7;
-    }
-
-    .welcome-hint {
-      font-size: 12px;
-      color: #9da3c0;
-      margin-top: 16px;
-    }
-
-    /* Messages */
-    .msg-row {
-      display: flex;
-      gap: 12px;
-      max-width: 800px;
-      width: 100%;
-      animation: msgIn 0.25s ease;
-    }
-
-    @keyframes msgIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px)
-      }
-
-      to {
-        opacity: 1;
-        transform: none
-      }
-    }
-
-    .msg-row.user {
-      align-self: flex-end;
-      flex-direction: row-reverse;
-    }
-
-    .msg-row.ai {
-      align-self: flex-start;
-    }
-
-    .msg-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 700;
-      font-family: 'Syne', sans-serif;
-    }
-
-    .msg-row.ai .msg-avatar {
-      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-      color: #fff;
-    }
-
-    .msg-row.user .msg-avatar {
-      background: #eef1ff;
-      color: #5c6080;
-      border: 1.5px solid #c7d0f5;
-      font-size: 11px;
-    }
-
-    .bubble {
-      padding: 12px 16px;
-      border-radius: 14px;
-      font-size: 13.5px;
-      line-height: 1.7;
-      max-width: calc(100% - 46px);
-    }
-
-    .msg-row.ai .bubble {
-      background: #fff;
-      border: 1.5px solid #e2e6f5;
-      border-top-left-radius: 4px;
-      color: #1a1d2e;
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.07);
-    }
-
-    .msg-row.user .bubble {
-      background: linear-gradient(135deg, #4f46e5, #6d28d9);
-      border: none;
-      border-top-right-radius: 4px;
-      color: #fff;
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
-    }
-
-    .correction {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 10px;
-      font-size: 11.5px;
-      color: #065f46;
-      background: #d1fae5;
-      border: 1px solid #6ee7b7;
-      border-radius: 8px;
-      padding: 5px 10px;
-      font-weight: 500;
-    }
-
-    /* Typing */
-    .typing-row {
-      display: flex;
-      gap: 12px;
-      align-self: flex-start;
-    }
-
-    .typing-bubble {
-      background: #fff;
-      border: 1.5px solid #e2e6f5;
-      border-radius: 14px;
-      border-top-left-radius: 4px;
-      padding: 14px 16px;
-      display: flex;
-      gap: 5px;
-      align-items: center;
-      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.07);
-    }
-
-    .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #a5b0e8;
-      animation: blink 1.3s ease-in-out infinite;
-    }
-
-    .dot:nth-child(2) {
-      animation-delay: .2s
-    }
-
-    .dot:nth-child(3) {
-      animation-delay: .4s
-    }
-
-    @keyframes blink {
-
-      0%,
-      80%,
-      100% {
-        opacity: .25
-      }
-
-      40% {
-        opacity: 1
-      }
-    }
-
-    /* ─── INPUT ZONE ─── */
-    .input-zone {
-      padding: 16px 32px 20px;
-      border-top: 1px solid #e2e6f5;
-      background: #fff;
-      flex-shrink: 0;
-      box-shadow: 0 -2px 12px rgba(99, 102, 241, 0.06);
-    }
-
-    .quick-row {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-
-    .quick {
-      font-size: 11.5px;
-      padding: 5px 12px;
-      background: #f5f7ff;
-      border: 1.5px solid #e0e4f5;
-      border-radius: 20px;
-      color: #4f46e5;
-      cursor: pointer;
-      transition: all 0.15s;
-      white-space: nowrap;
-      font-weight: 500;
-    }
-
-    .quick:hover {
-      border-color: #4f46e5;
-      background: #eef1ff;
-      transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.15);
-    }
-
-    .input-row {
-      display: flex;
-      gap: 10px;
-      align-items: flex-end;
-    }
-
-    .textarea-wrap {
-      flex: 1;
-      position: relative;
-    }
-
-    textarea {
-      width: 100%;
-      background: #f5f7ff;
-      border: 1.5px solid #d1d5f0;
-      border-radius: 12px;
-      color: #1a1d2e;
-      font-family: 'Instrument Sans', sans-serif;
-      font-size: 13.5px;
-      line-height: 1.5;
-      padding: 12px 14px;
-      resize: none;
-      outline: none;
-      max-height: 120px;
-      min-height: 46px;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    textarea:focus {
-      border-color: #4f46e5;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-    }
-
-    textarea::placeholder {
-      color: #b0b8d8;
-    }
-
-    /* Voice wave overlay */
-    .recording-overlay {
-      display: none;
-      position: absolute;
-      inset: 0;
-      border-radius: 12px;
-      background: rgba(239, 68, 68, 0.07);
-      border: 1.5px solid rgba(239, 68, 68, 0.4);
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-    }
-
-    .recording-overlay.show {
-      display: flex;
-    }
-
-    .wave-bar {
-      width: 3px;
-      background: #ef4444;
-      border-radius: 2px;
-      animation: wave 0.7s ease-in-out infinite;
-    }
-
-    .wave-bar:nth-child(1) {
-      height: 8px;
-      animation-delay: 0s
-    }
-
-    .wave-bar:nth-child(2) {
-      height: 16px;
-      animation-delay: .1s
-    }
-
-    .wave-bar:nth-child(3) {
-      height: 22px;
-      animation-delay: .18s
-    }
-
-    .wave-bar:nth-child(4) {
-      height: 14px;
-      animation-delay: .08s
-    }
-
-    .wave-bar:nth-child(5) {
-      height: 20px;
-      animation-delay: .22s
-    }
-
-    .wave-bar:nth-child(6) {
-      height: 10px;
-      animation-delay: .14s
-    }
-
-    .wave-bar:nth-child(7) {
-      height: 18px;
-      animation-delay: .06s
-    }
-
-    @keyframes wave {
-
-      0%,
-      100% {
-        transform: scaleY(1)
-      }
-
-      50% {
-        transform: scaleY(1.7)
-      }
-    }
-
-    .rec-label {
-      color: #ef4444;
-      font-size: 12px;
-      font-weight: 500;
-      margin-left: 8px;
-      animation: pulse-txt 1s ease infinite;
-    }
-
-    @keyframes pulse-txt {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: .5
-      }
-    }
-
-    .ctrl-btns {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-mic {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      background: #f5f7ff;
-      border: 1.5px solid #d1d5f0;
-      color: #5c6080;
-      cursor: pointer;
-      font-size: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-      flex-shrink: 0;
-    }
-
-    .btn-mic:hover {
-      border-color: #ef4444;
-      color: #ef4444;
-      background: #fff1f1;
-      transform: scale(1.06);
-    }
-
-    .btn-mic.listening {
-      background: #fff1f1;
-      border-color: #ef4444;
-      color: #ef4444;
-      animation: mic-ring 1.2s ease infinite;
-    }
-
-    @keyframes mic-ring {
-
-      0%,
-      100% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, .25)
-      }
-
-      50% {
-        box-shadow: 0 0 0 7px rgba(239, 68, 68, 0)
-      }
-    }
-
-    .btn-send {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #4f46e5, #7c3aed);
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.15s;
-      flex-shrink: 0;
-      font-family: 'Syne', sans-serif;
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
-    }
-
-    .btn-send:hover {
-      opacity: 0.88;
-      transform: scale(1.06);
-      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-    }
-
-    .btn-send:active {
-      transform: scale(0.96);
-    }
-
-    .btn-send:disabled {
-      background: #e0e4f5;
-      color: #b0b8d8;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    /* Status bar */
-    .status-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 10px;
-    }
-
-    .status-msg {
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .voice-toggle,
-    .auto-toggle {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 768px) {
-      .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 280px;
-        min-width: 280px;
-        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
-        transform: translateX(0);
-      }
-
-      .sidebar.collapsed {
-        transform: translateX(-100%);
-        width: 280px;
-        min-width: 280px;
-      }
-
-      .close-sidebar {
-        display: block;
-      }
-
-      .model-badge {
-        display: none;
-      }
-
-      .topbar {
-        padding: 0 15px;
-      }
-
-      .input-zone {
-        padding: 12px 15px 20px;
-      }
-
-      .quick-row {
-        display: none;
-      }
-
-      .status-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-      }
-
-      .sidebar-overlay {
-        display: block;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(2px);
-        z-index: 999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s;
-      }
-
-      .sidebar:not(.collapsed) + .sidebar-overlay {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      .topbar {
-        padding: 10px 12px;
-        gap: 8px;
-      }
-
-      .provider-pill {
-        padding: 4px 10px 4px 6px;
-        max-width: 130px;
-        gap: 5px;
-      }
-
-      #pillLabel {
-        font-size: 11px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .topbar-right {
-        gap: 6px;
-      }
-    }
-
-    .sidebar-overlay {
-      display: none;
-    }
-
-    .topbar-logo {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 18px;
-      letter-spacing: -0.5px;
-      margin-right: 12px;
-      display: none;
-    }
-
-    .sidebar.collapsed~.main .topbar-logo {
-      display: block;
-    }
-
-    .menu-btn {
-      display: flex;
-      width: 36px;
-      height: 36px;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      cursor: pointer;
-      background: var(--surf3);
-      border-radius: 10px;
-      color: var(--active);
-      margin-right: 12px;
-    }
-
-    .toggle-switch {
-      width: 28px;
-      height: 16px;
-      border-radius: 8px;
-      background: var(--dim);
-      position: relative;
-      transition: background 0.2s;
-    }
-
-    .toggle-switch.on {
-      background: #4285F4;
-    }
-
-    .toggle-knob {
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #fff;
-      transition: left 0.2s;
-    }
-
-    .toggle-switch.on .toggle-knob {
-      left: 14px;
-    }
-
-    /* Toast */
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: var(--surf3);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 10px 16px;
-      font-size: 12px;
-      color: var(--text);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-      transform: translateY(80px);
-      opacity: 0;
-      transition: all 0.3s ease;
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .toast.show {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    .toast.success {
-      border-color: rgba(52, 211, 153, .3);
-    }
-
-    .toast.error {
-      border-color: rgba(248, 113, 113, .3);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Aira — English Practice AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:       #F0F4FF;
+  --surf1:    #FFFFFF;
+  --surf2:    #F5F7FF;
+  --surf3:    #EBF0FF;
+  --border:   rgba(99,102,241,0.12);
+  --border2:  rgba(99,102,241,0.28);
+  --text:     #1a1d2e;
+  --muted:    #5c6080;
+  --dim:      #9da3c0;
+  --indigo:   #4f46e5;
+  --violet:   #7c3aed;
+  --green:    #10b981;
+}
+
+html,body { height:100%; }
+
+body {
+  font-family:'Instrument Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  overflow:hidden;
+  font-size:14px;
+}
+
+/* ═══════════════════════════════
+   SIDEBAR
+═══════════════════════════════ */
+.sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--surf1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+}
+
+.sidebar-header {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-mark {
+  width:34px; height:34px; border-radius:10px;
+  background: linear-gradient(135deg,#4f46e5,#7c3aed);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:700; font-size:16px; color:#fff;
+  box-shadow: 0 4px 12px rgba(79,70,229,0.3);
+}
+.logo h1 { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; letter-spacing:-0.3px; }
+.logo-sub { font-size:10px; color:var(--dim); margin-top:1px; }
+
+.sidebar-close {
+  display:none;
+  background:none; border:none; cursor:pointer;
+  font-size:20px; color:var(--muted); line-height:1;
+  padding:4px;
+}
+
+.sidebar-body { flex:1; overflow-y:auto; padding:14px; }
+.sidebar-body::-webkit-scrollbar { width:3px; }
+.sidebar-body::-webkit-scrollbar-thumb { background:#c7d0f0; border-radius:3px; }
+
+/* Connection status */
+.conn-status {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 12px;
+  background:#eef1ff; border:1px solid #c7d0f5; border-radius:10px;
+  margin-bottom:16px;
+}
+.sdot { width:8px; height:8px; border-radius:50%; background:#c7d0f5; flex-shrink:0; transition:background .3s; }
+.sdot.on  { background:var(--green); box-shadow:0 0 7px rgba(16,185,129,.5); animation:sdot-pulse 2s infinite; }
+@keyframes sdot-pulse { 0%,100%{box-shadow:0 0 7px rgba(16,185,129,.4)} 50%{box-shadow:0 0 14px rgba(16,185,129,.2)} }
+.stext { font-size:11px; color:var(--muted); }
+.stext strong { color:var(--text); font-weight:600; }
+
+/* Section label */
+.sec-label {
+  font-size:10px; font-weight:700; letter-spacing:1.1px;
+  color:var(--dim); text-transform:uppercase; margin:0 0 10px;
+}
+
+/* ── Provider cards (accordion) ── */
+.providers { display:flex; flex-direction:column; gap:7px; margin-bottom:20px; }
+
+.pcard {
+  border-radius:12px;
+  border:1.5px solid var(--border);
+  background:var(--surf2);
+  overflow:hidden;
+  box-shadow:0 1px 4px rgba(99,102,241,.05);
+  transition:border-color .18s, box-shadow .18s;
+}
+.pcard:hover { border-color:var(--border2); box-shadow:0 3px 12px rgba(99,102,241,.1); }
+.pcard.open  { border-color:var(--p-color,var(--indigo)); box-shadow:0 4px 16px rgba(79,70,229,.13); background:#fff; }
+.pcard.connected { border-color:var(--green)!important; }
+
+.pcard-header {
+  display:flex; align-items:center; gap:10px;
+  padding:11px 13px; cursor:pointer; user-select:none;
+}
+.p-icon {
+  width:30px; height:30px; border-radius:8px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:700; font-family:'Syne',sans-serif;
+}
+.p-name { font-family:'Syne',sans-serif; font-weight:600; font-size:13px; flex:1; }
+.p-badge {
+  font-size:9px; font-weight:700; letter-spacing:.4px; padding:2px 7px;
+  border-radius:20px; text-transform:uppercase;
+}
+.badge-free { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+.badge-paid { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
+.badge-builtin { background:#e0e7ff; color:#3730a3; border:1px solid #a5b4fc; }
+.badge-connected { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+
+.p-chevron {
+  width:16px; height:16px; color:var(--dim); flex-shrink:0;
+  transition:transform .2s; font-size:11px; display:flex; align-items:center; justify-content:center;
+}
+.pcard.open .p-chevron { transform:rotate(180deg); }
+
+/* Groq built-in (no key needed) */
+.pcard[data-p="groq"] .p-chevron { display:none; }
+.pcard[data-p="groq"] .pcard-header { cursor:default; }
+
+.groq-builtin-row {
+  display:flex; align-items:center; gap:8px;
+  padding:0 13px 12px; margin-top:-4px;
+}
+.groq-builtin-row .use-groq-btn {
+  flex:1; padding:8px; border-radius:8px; border:none;
+  background:linear-gradient(135deg,#ea580c,#f97316);
+  color:#fff; font-family:'Syne',sans-serif; font-weight:600; font-size:12px;
+  cursor:pointer; transition:opacity .15s, transform .1s;
+  box-shadow:0 3px 10px rgba(234,88,12,.3);
+}
+.groq-builtin-row .use-groq-btn:hover { opacity:.88; transform:scale(1.01); }
+.groq-key-edit {
+  display:flex; align-items:center; gap:4px;
+  font-size:10px; color:var(--dim); cursor:pointer; white-space:nowrap;
+}
+.groq-key-edit:hover { color:var(--indigo); }
+
+/* Accordion body */
+.pcard-body {
+  max-height:0; overflow:hidden;
+  transition:max-height .3s cubic-bezier(.4,0,.2,1), padding .3s;
+  padding:0 13px;
+}
+.pcard.open .pcard-body { max-height:300px; padding:0 13px 13px; }
+
+.field-label {
+  font-size:10px; color:var(--muted); font-weight:600;
+  margin:8px 0 4px; letter-spacing:.3px;
+  display:flex; align-items:center; gap:6px;
+}
+.field-hint { font-size:9px; font-weight:400; color:#10b981; }
+
+.key-wrap { position:relative; }
+.key-wrap input {
+  width:100%; background:#fff; border:1.5px solid #d1d5f0;
+  border-radius:8px; color:var(--text);
+  font-family:'Instrument Sans',sans-serif; font-size:12px;
+  padding:8px 34px 8px 10px; outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.key-wrap input:focus { border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+.key-wrap input::placeholder { color:#b0b8d8; }
+.eye-btn {
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  background:none; border:none; cursor:pointer; color:#9da3c0; font-size:12px; padding:2px;
+}
+.eye-btn:hover { color:var(--indigo); }
+
+.sel-wrap select {
+  width:100%; background:#fff; border:1.5px solid #d1d5f0;
+  border-radius:8px; color:var(--text);
+  font-family:'Instrument Sans',sans-serif; font-size:12px;
+  padding:8px 28px 8px 10px; outline:none; cursor:pointer;
+  appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235c6080' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 9px center;
+  transition:border-color .15s, box-shadow .15s;
+}
+.sel-wrap select:focus { border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+.sel-wrap select option { background:#fff; color:var(--text); }
+
+.connect-btn {
+  width:100%; margin-top:10px; padding:8px; border-radius:8px;
+  border:none; color:#fff; font-family:'Syne',sans-serif;
+  font-weight:600; font-size:12px; cursor:pointer;
+  transition:opacity .15s, transform .1s;
+  background:var(--p-color,var(--indigo));
+}
+.connect-btn:hover { opacity:.88; }
+.connect-btn:active { transform:scale(.98); }
+
+/* Shortcuts */
+.shortcuts { display:flex; flex-direction:column; gap:6px; }
+.shortcut {
+  padding:9px 12px; background:#fff; border:1.5px solid #e0e4f5;
+  border-radius:9px; font-size:12px; color:#3d4468;
+  cursor:pointer; transition:all .15s; display:flex; align-items:center; gap:8px; font-weight:500;
+}
+.shortcut:hover { background:#eef1ff; border-color:#a5b0e8; color:var(--indigo); transform:translateX(3px); }
+
+/* ═══════════════════════════════
+   MAIN AREA
+═══════════════════════════════ */
+.main { flex:1; display:flex; flex-direction:column; min-width:0; }
+
+/* Top bar */
+.topbar {
+  padding:12px 20px;
+  border-bottom:1px solid #e2e6f5;
+  display:flex; align-items:center; gap:12px;
+  background:#fff; flex-shrink:0;
+  box-shadow:0 1px 4px rgba(99,102,241,.07);
+}
+.hamburger {
+  display:none;
+  background:none; border:none; cursor:pointer;
+  font-size:20px; color:var(--muted); padding:4px; line-height:1;
+}
+.provider-pill {
+  display:flex; align-items:center; gap:7px; padding:5px 11px 5px 7px;
+  border-radius:20px; background:#eef1ff; border:1.5px solid #c7d0f5;
+  font-size:12px; font-weight:600; color:#3d4468;
+}
+.pill-dot { width:8px; height:8px; border-radius:50%; background:#c7d0f5; transition:background .3s; }
+.model-badge {
+  font-size:11px; color:var(--muted); background:var(--surf2);
+  border:1.5px solid #e0e4f5; padding:4px 10px; border-radius:20px; font-weight:500;
+}
+.topbar-right { margin-left:auto; display:flex; align-items:center; gap:8px; }
+.icon-btn {
+  width:32px; height:32px; border-radius:8px;
+  background:var(--surf2); border:1.5px solid #e0e4f5;
+  color:var(--muted); cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; transition:all .15s;
+}
+.icon-btn:hover { background:#eef1ff; color:var(--indigo); border-color:#a5b0e8; transform:scale(1.08); }
+.icon-btn.voice-active { background:#eef1ff; color:var(--indigo); border-color:#a5b0e8; }
+
+/* Chat */
+.chat-area {
+  flex:1; overflow-y:auto;
+  padding:24px 24px;
+  display:flex; flex-direction:column; gap:18px;
+  scroll-behavior:smooth; background:var(--bg);
+}
+.chat-area::-webkit-scrollbar { width:4px; }
+.chat-area::-webkit-scrollbar-thumb { background:#c7d0f0; border-radius:4px; }
+
+/* Welcome */
+.welcome {
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; flex:1; text-align:center; padding:40px 16px;
+}
+.welcome-glow {
+  width:76px; height:76px; border-radius:22px; margin-bottom:18px;
+  background:linear-gradient(135deg,var(--indigo),var(--violet));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-size:30px; font-weight:700; color:#fff;
+  box-shadow:0 16px 48px rgba(79,70,229,.28);
+}
+.welcome h2 { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; margin-bottom:8px; color:var(--text); }
+.welcome p  { font-size:13px; color:var(--muted); max-width:340px; line-height:1.7; }
+.welcome-hint { font-size:12px; color:var(--dim); margin-top:14px; }
+
+/* Messages */
+.msg-row {
+  display:flex; gap:10px; max-width:780px; width:100%;
+  animation:msgIn .22s ease;
+}
+@keyframes msgIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+.msg-row.user { align-self:flex-end; flex-direction:row-reverse; }
+.msg-row.ai   { align-self:flex-start; }
+.msg-avatar {
+  width:30px; height:30px; border-radius:9px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; font-family:'Syne',sans-serif;
+}
+.msg-row.ai .msg-avatar   { background:linear-gradient(135deg,var(--indigo),var(--violet)); color:#fff; }
+.msg-row.user .msg-avatar { background:#eef1ff; color:var(--muted); border:1.5px solid #c7d0f5; font-size:10px; }
+.bubble {
+  padding:11px 15px; border-radius:14px;
+  font-size:13.5px; line-height:1.7; max-width:calc(100% - 42px);
+}
+.msg-row.ai .bubble {
+  background:#fff; border:1.5px solid #e2e6f5;
+  border-top-left-radius:4px; color:var(--text);
+  box-shadow:0 2px 8px rgba(99,102,241,.07);
+}
+.msg-row.user .bubble {
+  background:linear-gradient(135deg,var(--indigo),#6d28d9);
+  border-top-right-radius:4px; color:#fff;
+  box-shadow:0 4px 14px rgba(79,70,229,.28);
+}
+.correction {
+  display:flex; align-items:flex-start; gap:5px; margin-top:9px;
+  font-size:11.5px; color:#065f46; background:#d1fae5;
+  border:1px solid #6ee7b7; border-radius:8px; padding:6px 10px;
+  font-weight:500; line-height:1.5;
+}
+
+/* Typing */
+.typing-row { display:flex; gap:10px; align-self:flex-start; }
+.typing-bubble {
+  background:#fff; border:1.5px solid #e2e6f5; border-radius:14px;
+  border-top-left-radius:4px; padding:13px 15px;
+  display:flex; gap:5px; align-items:center;
+  box-shadow:0 2px 8px rgba(99,102,241,.07);
+}
+.dot { width:7px; height:7px; border-radius:50%; background:#a5b0e8; animation:blink 1.3s ease-in-out infinite; }
+.dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+@keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
+
+/* ═══════════════════════════════
+   INPUT ZONE
+═══════════════════════════════ */
+.input-zone {
+  padding:14px 20px 16px;
+  border-top:1px solid #e2e6f5;
+  background:#fff; flex-shrink:0;
+  box-shadow:0 -2px 12px rgba(99,102,241,.06);
+}
+.quick-row {
+  display:flex; gap:6px; overflow-x:auto; margin-bottom:11px;
+  scrollbar-width:none; -webkit-overflow-scrolling:touch;
+}
+.quick-row::-webkit-scrollbar { display:none; }
+.quick {
+  font-size:11.5px; padding:5px 12px; white-space:nowrap;
+  background:var(--surf2); border:1.5px solid #e0e4f5;
+  border-radius:20px; color:var(--indigo); cursor:pointer;
+  font-weight:500; transition:all .15s; flex-shrink:0;
+}
+.quick:hover { border-color:var(--indigo); background:#eef1ff; transform:translateY(-1px); box-shadow:0 2px 8px rgba(79,70,229,.13); }
+
+.input-row { display:flex; gap:9px; align-items:flex-end; }
+.textarea-wrap { flex:1; position:relative; }
+textarea {
+  width:100%; background:var(--surf2); border:1.5px solid #d1d5f0;
+  border-radius:12px; color:var(--text);
+  font-family:'Instrument Sans',sans-serif; font-size:13.5px; line-height:1.5;
+  padding:11px 14px; resize:none; outline:none;
+  max-height:110px; min-height:44px;
+  transition:border-color .15s, box-shadow .15s;
+}
+textarea:focus { border-color:var(--indigo); background:#fff; box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+textarea::placeholder { color:#b0b8d8; }
+
+/* Recording overlay */
+.rec-overlay {
+  display:none; position:absolute; inset:0; border-radius:12px;
+  background:rgba(239,68,68,.06); border:1.5px solid rgba(239,68,68,.4);
+  align-items:center; justify-content:center; gap:3px;
+}
+.rec-overlay.show { display:flex; }
+.wbar { width:3px; background:#ef4444; border-radius:2px; animation:wave .7s ease-in-out infinite; }
+.wbar:nth-child(1){height:7px;animation-delay:0s}
+.wbar:nth-child(2){height:15px;animation-delay:.1s}
+.wbar:nth-child(3){height:22px;animation-delay:.18s}
+.wbar:nth-child(4){height:13px;animation-delay:.08s}
+.wbar:nth-child(5){height:19px;animation-delay:.22s}
+.wbar:nth-child(6){height:9px;animation-delay:.14s}
+@keyframes wave { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(1.8)} }
+.rec-label { color:#ef4444; font-size:11px; font-weight:600; margin-left:6px; animation:ptxt 1s ease infinite; }
+@keyframes ptxt { 0%,100%{opacity:1} 50%{opacity:.45} }
+
+.btn-mic {
+  width:44px; height:44px; border-radius:12px; flex-shrink:0;
+  background:var(--surf2); border:1.5px solid #d1d5f0;
+  color:var(--muted); cursor:pointer; font-size:18px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .15s;
+}
+.btn-mic:hover { border-color:#ef4444; color:#ef4444; background:#fff1f1; transform:scale(1.06); }
+.btn-mic.listening { background:#fff1f1; border-color:#ef4444; color:#ef4444; animation:mic-ring 1.2s ease infinite; }
+@keyframes mic-ring { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.2)} 50%{box-shadow:0 0 0 7px rgba(239,68,68,0)} }
+
+.btn-send {
+  width:44px; height:44px; border-radius:12px; flex-shrink:0;
+  background:linear-gradient(135deg,var(--indigo),var(--violet));
+  border:none; color:#fff; cursor:pointer; font-size:16px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .15s; box-shadow:0 4px 12px rgba(79,70,229,.32);
+}
+.btn-send:hover { opacity:.88; transform:scale(1.06); }
+.btn-send:active { transform:scale(.95); }
+.btn-send:disabled { background:#e0e4f5; color:#b0b8d8; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* Status + toggles */
+.status-row { display:flex; align-items:center; justify-content:space-between; margin-top:9px; flex-wrap:wrap; gap:8px; }
+.status-msg { font-size:11px; color:var(--muted); }
+.toggles { display:flex; gap:14px; }
+.tog-item {
+  display:flex; align-items:center; gap:5px;
+  font-size:11px; color:var(--muted); cursor:pointer; user-select:none;
+}
+.tog-sw { width:28px; height:16px; border-radius:8px; background:var(--dim); position:relative; transition:background .2s; }
+.tog-sw.on { background:var(--indigo); }
+.tog-knob { position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%; background:#fff; transition:left .2s; }
+.tog-sw.on .tog-knob { left:14px; }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:20px; right:20px;
+  background:#1a1d2e; border-radius:10px; padding:10px 16px;
+  font-size:12px; color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.25);
+  transform:translateY(70px); opacity:0; transition:all .28s ease;
+  z-index:999; display:flex; align-items:center; gap:8px; max-width:300px;
+}
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { background:#065f46; }
+.toast.info    { background:#1e3a5f; }
+
+/* Sidebar overlay (mobile) */
+.sidebar-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.4); z-index:99;
+  backdrop-filter:blur(2px);
+}
+
+/* Groq edit panel (hidden by default) */
+.groq-edit { display:none; padding:0 13px 12px; }
+.groq-edit.show { display:block; }
+
+/* ═══════════════════════════════
+   RESPONSIVE — MOBILE
+═══════════════════════════════ */
+@media (max-width: 680px) {
+  body { flex-direction:column; overflow:hidden; }
+
+  .sidebar {
+    position:fixed; top:0; left:0; bottom:0;
+    transform:translateX(-100%);
+    box-shadow:4px 0 24px rgba(0,0,0,.15);
+    width:290px;
+    z-index:200;
+  }
+  .sidebar.open { transform:translateX(0); }
+  .sidebar-close { display:flex; align-items:center; justify-content:center; }
+  .sidebar-overlay { display:block; opacity:0; pointer-events:none; transition:opacity .28s; }
+  .sidebar-overlay.show { opacity:1; pointer-events:auto; }
+
+  .hamburger { display:flex; align-items:center; justify-content:center; }
+  .main { height:100vh; flex:1; }
+  .topbar { padding:10px 14px; gap:8px; }
+  .provider-pill { font-size:11px; padding:4px 9px 4px 6px; }
+  .model-badge { display:none; }
+
+  .chat-area { padding:16px 14px; gap:14px; }
+  .msg-row { max-width:100%; }
+  .bubble { font-size:13px; padding:10px 13px; }
+
+  .input-zone { padding:12px 14px 14px; }
+  .quick { font-size:11px; padding:4px 10px; }
+  textarea { font-size:13px; padding:10px 12px; }
+  .btn-mic, .btn-send { width:42px; height:42px; }
+
+  .status-row { flex-direction:column; align-items:flex-start; gap:6px; }
+  .toggles { gap:12px; }
+
+  .welcome { padding:30px 14px; }
+  .welcome-glow { width:64px; height:64px; font-size:26px; }
+  .welcome h2 { font-size:19px; }
+
+  .toast { right:14px; bottom:14px; left:14px; max-width:unset; }
+}
+
+@media (max-width: 380px) {
+  .topbar { padding:8px 12px; }
+  .chat-area { padding:12px 10px; }
+  .input-zone { padding:10px 12px 12px; }
+  .bubble { font-size:12.5px; }
+}
+</style>
 </head>
-
 <body>
 
-  <!-- ─── SIDEBAR ─── -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="close-sidebar" onclick="toggleSidebar()">✕</div>
-      <div class="logo">
-        <div class="logo-mark">A</div>
+<!-- Sidebar overlay for mobile -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ═══════ SIDEBAR ═══════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <div class="logo-mark">A</div>
+      <div>
         <h1>Aira</h1>
+        <div class="logo-sub">English Practice AI</div>
       </div>
     </div>
+    <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+  </div>
 
-    <div class="sidebar-body">
+  <div class="sidebar-body">
 
-      <!-- Live Status -->
-      <div class="provider-status" id="statusBox">
-        <div class="status-dot" id="statusDot"></div>
-        <div class="status-text" id="statusText">Select a provider to get started</div>
-      </div>
-
-      <!-- Providers -->
-      <div class="sec-label">Choose Your AI Provider</div>
-      <div class="providers">
-
-        <!-- Gemini -->
-        <div class="provider-card" data-p="gemini" onclick="selectProvider('gemini', this)">
-          <div class="p-top">
-            <div class="p-icon gemini-icon">G</div>
-            <div class="p-name">Google Gemini</div>
-            <span class="p-free">Free</span>
-          </div>
-          <div class="p-fields">
-            <div>
-              <div class="field-label">API Key <span style="color:#34d399;font-size:9px">• Free at
-                  aistudio.google.com</span></div>
-              <div class="key-wrap">
-                <input type="password" id="key-gemini" placeholder="AIza..." autocomplete="off">
-                <button class="eye-btn" onclick="toggleEye('key-gemini',this)">👁</button>
-              </div>
-            </div>
-            <div>
-              <div class="field-label">Model</div>
-              <div class="sel-wrap">
-                <select id="model-gemini">
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash 🚀 (Recommended)</option>
-                </select>
-              </div>
-            </div>
-            <button class="save-btn" onclick="saveProvider('gemini')">✓ &nbsp;Connect Gemini</button>
-          </div>
-        </div>
-
-        <!-- Groq -->
-        <div class="provider-card" data-p="groq" onclick="selectProvider('groq', this)">
-          <div class="p-top">
-            <div class="p-icon groq-icon">⚡</div>
-            <div class="p-name">Groq (Llama)</div>
-            <span class="p-free">Free</span>
-          </div>
-          <div class="p-fields">
-            <div style="margin-bottom: 12px; font-size: 11px; color: #5c6080; background: #fff3ec; padding: 8px; border-radius: 6px; border: 1px solid #fcd9c0;">
-              Groq is <strong>built-in</strong> and ready to use! Just select the model and click connect.
-            </div>
-            <div>
-              <div class="field-label">Model</div>
-              <div class="sel-wrap">
-                <select id="model-groq">
-                  <option value="llama-3.1-8b-instant">Llama 3.1 8B ⚡ (Fast)</option>
-                </select>
-              </div>
-            </div>
-            <button class="save-btn" onclick="saveProvider('groq')">✓ &nbsp;Connect Groq</button>
-          </div>
-        </div>
-
-        <!-- OpenRouter -->
-        <div class="provider-card" data-p="openrouter" onclick="selectProvider('openrouter', this)">
-          <div class="p-top">
-            <div class="p-icon or-icon">⊕</div>
-            <div class="p-name">OpenRouter</div>
-            <span class="p-free">Free</span>
-          </div>
-          <div class="p-fields">
-            <div>
-              <div class="field-label">API Key <span style="color:#34d399;font-size:9px">• Free at openrouter.ai</span>
-              </div>
-              <div class="key-wrap">
-                <input type="password" id="key-openrouter" placeholder="sk-or-..." autocomplete="off">
-                <button class="eye-btn" onclick="toggleEye('key-openrouter',this)">👁</button>
-              </div>
-            </div>
-            <div>
-              <div class="field-label">Model <span style="color:#34d399;font-size:9px">(:free = no cost)</span></div>
-              <div class="sel-wrap">
-                <select id="model-openrouter">
-                  <option value="meta-llama/llama-3.1-70b-instruct:free">Llama 3.1 70B 🆓 Free</option>
-                  <option value="google/gemini-flash-1.5-exp:free">Gemini 1.5 Flash 🆓 Free</option>
-                  <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B 🆓 Free</option>
-                  <option value="meta-llama/llama-3-8b-instruct:free">Llama 3 8B 🆓 Free</option>
-                </select>
-              </div>
-            </div>
-            <button class="save-btn" onclick="saveProvider('openrouter')">✓ &nbsp;Connect OpenRouter</button>
-          </div>
-        </div>
-
-
-      </div>
-
-      <!-- Shortcuts -->
-      <div class="sec-label">Practice Topics</div>
-      <div class="shortcuts">
-        <div class="shortcut" onclick="sendShortcut(this)"><span class="shortcut-icon">☀️</span> Tell me about your day
-        </div>
-        <div class="shortcut" onclick="sendShortcut(this)"><span class="shortcut-icon">📚</span> Let's practice
-          vocabulary</div>
-        <div class="shortcut" onclick="sendShortcut(this)"><span class="shortcut-icon">🗞️</span> Discuss current events
-        </div>
-        <div class="shortcut" onclick="sendShortcut(this)"><span class="shortcut-icon">💬</span> Correct my grammar
-          today</div>
-        <div class="shortcut" onclick="sendShortcut(this)"><span class="shortcut-icon">🎤</span> Practice interview
-          English</div>
-      </div>
-
-    </div>
-  </aside>
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-  <!-- ─── MAIN ─── -->
-  <main class="main">
-
-    <!-- Top bar -->
-    <div class="topbar">
-      <div class="menu-btn" onclick="toggleSidebar()">☰</div>
-      <div class="topbar-logo">Aira</div>
-      <div class="provider-pill" id="activeProviderPill">
-        <div class="pill-dot" id="pillDot"></div>
-        <span id="pillLabel">No provider connected</span>
-      </div>
-      <div class="model-badge" id="modelBadge">Select a provider →</div>
-      <div class="topbar-right">
-        <div class="icon-btn" onclick="clearChat()" title="Clear chat">🗑</div>
-        <div class="icon-btn" onclick="toggleVoiceOutput()" id="voiceBtn" title="Toggle voice output">🔊</div>
-      </div>
+    <!-- Connection status -->
+    <div class="conn-status">
+      <div class="sdot" id="sdot"></div>
+      <div class="stext" id="stext">Select a provider to begin</div>
     </div>
 
-    <!-- Chat -->
-    <div class="chat-area" id="chatArea">
-      <div class="welcome" id="welcome">
-        <div class="welcome-glow">A</div>
-        <h2>Hello! I'm Aira ✦</h2>
-        <p>Your personal English practice partner. Connect your preferred AI provider from the left panel, then start
-          chatting or use your microphone.</p>
-        <div class="welcome-hint">🎤 Speak or type — I'll correct your grammar gently and keep the conversation flowing.
+    <div class="sec-label">AI Provider</div>
+    <div class="providers">
+
+      <!-- ── GROQ (Built-in) ── -->
+      <div class="pcard" data-p="groq" style="--p-color:#ea580c">
+        <div class="pcard-header" onclick="toggleCard('groq')">
+        <div class="pcard-header">
+          <div class="p-icon" style="background:#fff3ec;color:#ea580c;border:1.5px solid #fcd9c0">⚡</div>
+          <div class="p-name">Groq</div>
+          <span class="p-badge badge-builtin" id="groq-badge">Built-in</span>
+        </div>
+        <div class="groq-builtin-row">
+          <button class="use-groq-btn" onclick="activateGroq()">⚡ Use Groq (No Key Needed)</button>
+          <div class="groq-key-edit" onclick="toggleGroqEdit()" title="Change key">⚙ key</div>
+        </div>
+        <div class="groq-edit" id="groqEdit">
+          <div class="field-label">Custom Groq Key <span class="field-hint">• console.groq.com</span></div>
+          <div class="key-wrap">
+            <input type="password" id="key-groq" placeholder="gsk_..." autocomplete="off">
+            <button class="eye-btn" onclick="toggleEye('key-groq',this)">👁</button>
+          </div>
+          <div class="field-label">Model</div>
+          <div class="sel-wrap">
+            <select id="model-groq">
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B 🏆 (Best)</option>
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B ⚡ (Fastest)</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8x7B 🔀</option>
+              <option value="gemma2-9b-it">Gemma 2 9B 💎</option>
+            </select>
+          </div>
+          <button class="connect-btn" style="background:#ea580c" onclick="saveProvider('groq')">Save Custom Key</button>
+        </div>
+        </div>
+      </div>
+
+      <!-- ── GEMINI ── -->
+      <div class="pcard" data-p="gemini" style="--p-color:#1a73e8" id="card-gemini">
+        <div class="pcard-header" onclick="toggleCard('gemini')">
+          <div class="p-icon" style="background:#e8f0fe;color:#1a73e8;border:1.5px solid #bbcffd">G</div>
+          <div class="p-name">Google Gemini</div>
+          <span class="p-badge badge-free">Free</span>
+          <div class="p-chevron">▾</div>
+        </div>
+        <div class="pcard-body">
+          <div class="field-label">API Key <span class="field-hint">• aistudio.google.com</span></div>
+          <div class="key-wrap">
+            <input type="password" id="key-gemini" placeholder="AIza..." autocomplete="off">
+            <button class="eye-btn" onclick="toggleEye('key-gemini',this)">👁</button>
+          </div>
+          <div class="field-label">Model</div>
+          <div class="sel-wrap">
+            <select id="model-gemini">
+              <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡ (Fastest, Free)</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro 🧠 (Smartest)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash 🚀</option>
+            </select>
+          </div>
+          <button class="connect-btn" onclick="saveProvider('gemini')">✓ Connect Gemini</button>
+        </div>
+      </div>
+
+      <!-- ── OPENROUTER ── -->
+      <div class="pcard" data-p="openrouter" style="--p-color:#7c3aed" id="card-openrouter">
+        <div class="pcard-header" onclick="toggleCard('openrouter')">
+          <div class="p-icon" style="background:#f3eeff;color:#7c3aed;border:1.5px solid #d9c5fb">⊕</div>
+          <div class="p-name">OpenRouter</div>
+          <span class="p-badge badge-free">Free</span>
+          <div class="p-chevron">▾</div>
+        </div>
+        <div class="pcard-body">
+          <div class="field-label">API Key <span class="field-hint">• openrouter.ai</span></div>
+          <div class="key-wrap">
+            <input type="password" id="key-openrouter" placeholder="sk-or-..." autocomplete="off">
+            <button class="eye-btn" onclick="toggleEye('key-openrouter',this)">👁</button>
+          </div>
+          <div class="field-label">Model <span class="field-hint">:free = no cost</span></div>
+          <div class="sel-wrap">
+            <select id="model-openrouter">
+              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🆓</option>
+              <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash 🆓</option>
+              <option value="deepseek/deepseek-r1:free">DeepSeek R1 🆓</option>
+              <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B 🆓</option>
+              <option value="mistralai/mistral-7b-instruct:free">Mistral 7B 🆓</option>
+            </select>
+          </div>
+          <button class="connect-btn" onclick="saveProvider('openrouter')">✓ Connect OpenRouter</button>
+        </div>
+      </div>
+
+      <!-- ── ANTHROPIC ── -->
+      <div class="pcard" data-p="anthropic" style="--p-color:#b45309" id="card-anthropic">
+        <div class="pcard-header" onclick="toggleCard('anthropic')">
+          <div class="p-icon" style="background:#fef3e2;color:#b45309;border:1.5px solid #fcd89a">◈</div>
+          <div class="p-name">Anthropic Claude</div>
+          <span class="p-badge badge-paid">$5 Free</span>
+          <div class="p-chevron">▾</div>
+        </div>
+        <div class="pcard-body">
+          <div class="field-label">API Key <span class="field-hint" style="color:#fbbf24">• console.anthropic.com</span></div>
+          <div class="key-wrap">
+            <input type="password" id="key-anthropic" placeholder="sk-ant-..." autocomplete="off">
+            <button class="eye-btn" onclick="toggleEye('key-anthropic',this)">👁</button>
+          </div>
+          <div class="field-label">Model</div>
+          <div class="sel-wrap">
+            <select id="model-anthropic">
+              <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet 🧠</option>
+              <option value="claude-3-5-haiku-20241022">Claude 3.5 Haiku ⚡</option>
+              <option value="claude-3-opus-20240229">Claude 3 Opus 👑</option>
+            </select>
+          </div>
+          <button class="connect-btn" onclick="saveProvider('anthropic')">✓ Connect Claude</button>
+        </div>
+      </div>
+
+    </div><!-- /providers -->
+
+    <div class="sec-label">Practice Topics</div>
+    <div class="shortcuts">
+      <div class="shortcut" onclick="sendShortcut(this)"><span>☀️</span> Tell me about your day</div>
+      <div class="shortcut" onclick="sendShortcut(this)"><span>📚</span> Let's practice vocabulary</div>
+      <div class="shortcut" onclick="sendShortcut(this)"><span>🗞️</span> Discuss current events</div>
+      <div class="shortcut" onclick="sendShortcut(this)"><span>💬</span> Correct my grammar today</div>
+      <div class="shortcut" onclick="sendShortcut(this)"><span>🎤</span> Practice interview English</div>
+    </div>
+
+  </div><!-- /sidebar-body -->
+</aside>
+
+<!-- ═══════ MAIN ═══════ -->
+<main class="main">
+
+  <div class="topbar">
+    <button class="hamburger" onclick="openSidebar()">☰</button>
+    <div class="provider-pill">
+      <div class="pill-dot" id="pillDot"></div>
+      <span id="pillLabel">No provider</span>
+    </div>
+    <div class="model-badge" id="modelBadge">Select a provider →</div>
+    <div class="topbar-right">
+      <div class="icon-btn" onclick="clearChat()" title="Clear chat">🗑</div>
+      <div class="icon-btn" id="voiceBtn" onclick="toggleVoice()" title="Toggle voice">🔊</div>
+    </div>
+  </div>
+
+  <div class="chat-area" id="chatArea">
+    <div class="welcome" id="welcome">
+      <div class="welcome-glow">A</div>
+      <h2>Hello! I'm Aria ✦</h2>
+      <p>Your personal English practice partner. Groq is built-in — just tap <strong>⚡ Use Groq</strong> and start talking!</p>
+      <div class="welcome-hint">🎤 Speak or type — I'll correct your English gently and keep the chat going.</div>
+    </div>
+  </div>
+
+  <div class="input-zone">
+    <div class="quick-row">
+      <div class="quick" onclick="useQuick(this)">What does "eloquent" mean?</div>
+      <div class="quick" onclick="useQuick(this)">How to say this formally?</div>
+      <div class="quick" onclick="useQuick(this)">Give me a new word</div>
+      <div class="quick" onclick="useQuick(this)">Can we debate a topic?</div>
+      <div class="quick" onclick="useQuick(this)">Tell me a fun fact</div>
+    </div>
+
+    <div class="input-row">
+      <button class="btn-mic" id="micBtn" onclick="toggleMic()">🎤</button>
+      <div class="textarea-wrap">
+        <textarea id="msgInput" placeholder="Type or 🎤 speak in English…" rows="1"
+          onkeydown="onKey(event)" oninput="resize(this)"></textarea>
+        <div class="rec-overlay" id="recOverlay">
+          <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+          <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+          <span class="rec-label">Listening…</span>
+        </div>
+      </div>
+      <button class="btn-send" id="sendBtn" onclick="sendMsg()">➤</button>
+    </div>
+
+    <div class="status-row">
+      <div class="status-msg" id="statusMsg">Connect a provider from the menu ←</div>
+      <div class="toggles">
+        <div class="tog-item" onclick="toggleAutoListen()">
+          <span>Hands-free</span>
+          <div class="tog-sw" id="autoSw"><div class="tog-knob"></div></div>
+        </div>
+        <div class="tog-item" onclick="toggleVoice()">
+          <span>Voice</span>
+          <div class="tog-sw on" id="voiceSw"><div class="tog-knob"></div></div>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Input Zone -->
-    <div class="input-zone">
-      <div class="quick-row">
-        <div class="quick" onclick="useQuick(this)">What does "eloquent" mean?</div>
-        <div class="quick" onclick="useQuick(this)">How do I say this formally?</div>
-        <div class="quick" onclick="useQuick(this)">Give me a new word today</div>
-        <div class="quick" onclick="useQuick(this)">Can we debate a topic?</div>
-      </div>
+</main>
 
-      <div class="input-row">
-        <button class="btn-mic" id="micBtn" onclick="toggleMic()" title="Click to speak">🎤</button>
+<div class="toast" id="toast"></div>
 
-        <div class="textarea-wrap">
-          <textarea id="msgInput" placeholder="Type a message or click 🎤 to speak in English..."
-            onkeydown="onKey(event)" oninput="resize(this)" rows="1"></textarea>
-          <div class="recording-overlay" id="recOverlay">
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <div class="wave-bar"></div>
-            <span class="rec-label">Listening…</span>
-          </div>
-        </div>
+<script>
+// ══════════════════════════════════════════════
+//  ▶ BUILT-IN GROQ KEY — paste your key here
+//    Get free key at: console.groq.com
+// ══════════════════════════════════════════════
+const GROQ_BUILTIN_KEY   = '__GROQ_API_KEY__';  // ← replace this
+const GROQ_BUILTIN_MODEL = 'llama-3.3-70b-versatile';
 
-        <button class="btn-send" id="sendBtn" onclick="sendMsg()" title="Send">➤</button>
-      </div>
-
-      <div class="status-row">
-        <div class="status-msg" id="statusMsg">Connect a provider to start chatting</div>
-        <div style="display:flex; gap:16px;">
-          <div class="auto-toggle" onclick="toggleAutoListen()" title="Automatically listen after Aira speaks">
-            <span>Hands-free</span>
-            <div class="toggle-switch" id="autoToggle">
-              <div class="toggle-knob"></div>
-            </div>
-          </div>
-          <div class="voice-toggle" onclick="toggleVoiceOutput()">
-            <span>Voice reply</span>
-            <div class="toggle-switch" id="voiceToggle">
-              <div class="toggle-knob"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <div class="toast" id="toast"></div>
-
-  <script>
-    // ─── STATE ───
-    const SYSTEM = `You are Aira, a warm, patient English conversation partner helping someone practice English daily.
-
+// ── System prompt ──
+const SYSTEM = `You are Aria, a warm, patient English conversation partner helping someone practice English daily.
 Rules:
 1. Have natural, engaging conversations on any topic.
-2. At the end of your reply, if the user made a grammar or vocabulary mistake, add EXACTLY ONE line like:
+2. If the user made a grammar/vocab mistake, add EXACTLY ONE line at the end:
    💡 Correction: Instead of "[wrong]", say "[correct]" — [brief reason]
 3. Ask a follow-up question to keep conversation flowing.
-4. Occasionally teach a new word naturally: "By the way, a great word here is '___' which means..."
-5. Keep replies concise — 2-4 sentences feels like real conversation.
+4. Occasionally teach a new word: "A great word here is '___' which means..."
+5. Keep replies to 2-4 sentences — feel like real conversation.
 6. Be warm, encouraging, friendly. Celebrate their effort.
-7. If they write in another language, reply in English and gently encourage them to try in English too.`;
+7. If they write in another language, reply in English and encourage them to try in English.`;
 
-    const PROVIDERS = {
-      gemini: { name: 'Google Gemini', color: '#4285F4', icon: 'G' },
-      groq: { name: 'Groq', color: '#F97316', icon: '⚡' },
-      openrouter: { name: 'OpenRouter', color: '#8B5CF6', icon: '⊕' }
-    };
+// ── State ──
+let cfg        = JSON.parse(localStorage.getItem('aria_cfg2') || '{}');
+let history    = [];
+let isListening= false;
+let voiceOn    = localStorage.getItem('aria_voice') !== 'false';
+let autoListen = localStorage.getItem('aria_auto') === 'true';
+let recognition= null;
 
-    let cfg = JSON.parse(localStorage.getItem('aria_cfg') || '{}');
-    // cfg = { provider, key, model }
+const PROVIDERS = {
+  groq:       { name:'Groq',            color:'#ea580c' },
+  gemini:     { name:'Google Gemini',   color:'#1a73e8' },
+  openrouter: { name:'OpenRouter',      color:'#7c3aed' },
+  anthropic:  { name:'Anthropic Claude',color:'#b45309' }
+};
 
-    let history = [];
-    let isListening = false;
-    let voiceOn = localStorage.getItem('aria_voice') !== 'false';
-    let autoListen = localStorage.getItem('aria_auto') === 'true';
-    let recognition = null;
-    let currentCard = null;
+// ── Init ──
+window.addEventListener('DOMContentLoaded', () => {
+  // restore saved keys
+  ['gemini','openrouter','anthropic'].forEach(p => {
+    const s = cfg[p] || {};
+    if (s.key)   { const el = document.getElementById('key-'+p);   if(el) el.value = s.key; }
+    if (s.model) { const el = document.getElementById('model-'+p); if(el) el.value = s.model; }
+  });
+  if (cfg.groq?.key) document.getElementById('key-groq').value = cfg.groq.key;
+  if (cfg.groq?.model) document.getElementById('model-groq').value = cfg.groq.model;
 
-    // ─── INIT ───
-    window.addEventListener('DOMContentLoaded', () => {
-      const GROQ_KEY = "GROQ_API_KEY";
-      
-      // Auto-configure Groq as built-in
-      if (!cfg.groq) cfg.groq = { key: GROQ_KEY, model: 'llama-3.1-8b-instant' };
-      else cfg.groq.key = GROQ_KEY; 
+  updateVoiceUI();
+  updateAutoUI();
 
-      // Set default provider to groq if none active
-      if (!cfg.active) {
-        cfg.active = 'groq';
-        localStorage.setItem('aria_cfg', JSON.stringify(cfg));
-      }
-
-      // restore saved keys & models into inputs
-      ['gemini', 'openrouter'].forEach(p => {
-        const saved = cfg[p] || {};
-        const keyEl = document.getElementById('key-' + p);
-        const modelEl = document.getElementById('model-' + p);
-        if (saved.key && keyEl) keyEl.value = saved.key;
-        if (saved.model && modelEl) modelEl.value = saved.model;
-      });
-
-      // restore groq model
-      if (cfg.groq.model) {
-        document.getElementById('model-groq').value = cfg.groq.model;
-      }
-
-      if (cfg.active) activateProvider(cfg.active);
-      updateVoiceUI();
-      updateAutoListenUI();
-
-      // Mobile: Start with sidebar collapsed
-      if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.add('collapsed');
-      }
-
-      // One-time mic permission request on first click
-      document.body.addEventListener('click', async () => {
-        if (!window.micAuthorized) {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            stream.getTracks().forEach(t => t.stop());
-            window.micAuthorized = true;
-            console.log('Mic permission granted');
-          } catch (e) {
-            console.warn('Mic permission denied or unavailable');
-          }
-        }
-      }, { once: true });
-    });
-
-    function selectProvider(p, card) {
-      if (currentCard) currentCard.classList.remove('active');
-      card.classList.add('active');
-      currentCard = card;
+  // Auto-activate if previously connected
+  if (cfg.active) {
+    activateProvider(cfg.active);
+  } else {
+    // Auto-connect Groq if built-in key is set
+    if (GROQ_BUILTIN_KEY && GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE') {
+      activateGroq();
     }
+  }
 
-    function saveProvider(p) {
-      const model = document.getElementById('model-' + p).value;
-      let key = "";
-      
-      if (p === 'groq') {
-        key = "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";
-      } else {
-        const keyEl = document.getElementById('key-' + p);
-        key = keyEl ? keyEl.value.trim() : "";
-        if (!key) { showToast('Please enter your API key first', 'error'); return; }
-      }
+  // Preload voices
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+  }
 
-      if (!cfg[p]) cfg[p] = {};
-      cfg[p].key = key;
-      cfg[p].model = model;
-      cfg.active = p;
-      localStorage.setItem('aria_cfg', JSON.stringify(cfg));
+  // Mic permission on first interaction
+  document.body.addEventListener('click', () => {
+    navigator.mediaDevices?.getUserMedia({audio:true})
+      .then(s => s.getTracks().forEach(t => t.stop()))
+      .catch(e => console.log('Mic permission:', e.message));
+  }, {once:true});
+});
 
-      activateProvider(p);
-      showToast('Connected to ' + PROVIDERS[p].name + ' 🎉', 'success');
-      closeSidebarIfMobile();
-    }
+// ── Groq built-in activate ──
+function activateGroq() {
+  const customKey   = document.getElementById('key-groq').value.trim();
+  const customModel = document.getElementById('model-groq').value;
+  const key   = customKey   || GROQ_BUILTIN_KEY;
+  const model = customModel || GROQ_BUILTIN_MODEL;
 
-    function activateProvider(p) {
-      const info = PROVIDERS[p];
-      cfg.active = p;
+  if (!key || key === 'YOUR_GROQ_KEY_HERE') {
+    showToast('Add your Groq key in the ⚙ key section', 'info');
+    toggleGroqEdit();
+    return;
+  }
+  cfg.groq = {key, model};
+  cfg.active = 'groq';
+  localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
+  activateProvider('groq');
+  closeSidebar();
+}
 
-      // status box
-      document.getElementById('statusDot').className = 'status-dot active';
-      document.getElementById('statusText').innerHTML = `Connected to <strong>${info.name}</strong>`;
+function toggleGroqEdit() {
+  const el = document.getElementById('groqEdit');
+  el.classList.toggle('show');
+}
 
-      // topbar pill
-      document.getElementById('pillDot').style.background = info.color;
-      document.getElementById('pillLabel').textContent = info.name;
-      const model = (cfg[p] && cfg[p].model) || '—';
-      document.getElementById('modelBadge').textContent = model.split('/').pop().replace(':free', '').replace(/-\d{8}$/, '');
+// ── Provider accordion toggle ──
+function toggleCard(p) {
+  const card = document.getElementById('card-'+p);
+  if (!card) return;
+  // close others
+  ['gemini','openrouter','anthropic'].forEach(op => {
+    if (op !== p) document.getElementById('card-'+op)?.classList.remove('open');
+  });
+  card.classList.toggle('open');
+}
 
-      // set CSS active on card
-      document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('active'));
-      const card = document.querySelector(`.provider-card[data-p="${p}"]`);
-      if (card) { card.classList.add('active'); currentCard = card; }
+// ── Save provider (Gemini / OpenRouter / Anthropic) ──
+function saveProvider(p) {
+  const key   = document.getElementById('key-'+p)?.value.trim();
+  const model = document.getElementById('model-'+p)?.value;
+  if (!key) { showToast('Please enter your API key first', 'info'); return; }
+  cfg[p] = {key, model};
+  cfg.active = p;
+  localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
+  activateProvider(p);
+  if (p !== 'groq') document.getElementById('card-'+p)?.classList.remove('open');
+  closeSidebar();
+}
 
-      // update save-btn color
-      document.documentElement.style.setProperty('--active', info.color);
-      document.querySelectorAll('.provider-card.active .save-btn').forEach(b => {
-        b.style.background = info.color;
-      });
+// ── Activate a provider in UI ──
+function activateProvider(p) {
+  const info = PROVIDERS[p];
+  if (!info) return;
+  cfg.active = p;
 
-      setStatus('Ready! Type or speak to start practicing 🎤');
-    }
+  document.getElementById('sdot').className = 'sdot on';
+  document.getElementById('stext').innerHTML = `Connected to <strong>${info.name}</strong>`;
+  document.getElementById('pillDot').style.background = info.color;
+  document.getElementById('pillLabel').textContent = info.name;
 
-    // ─── CHAT ───
-    function removeWelcome() {
-      const w = document.getElementById('welcome');
-      if (w) w.remove();
-    }
+  const model = cfg[p]?.model || GROQ_BUILTIN_MODEL;
+  document.getElementById('modelBadge').textContent =
+    model.split('/').pop().replace(':free','').replace(/-\d{8}$/,'');
 
-    function setStatus(txt) {
-      const s = document.getElementById('statusMsg');
-      if (s) s.textContent = txt;
-    }
+  // mark connected badge on groq
+  if (p === 'groq') {
+    document.getElementById('groq-badge').textContent = '✓ Active';
+    document.getElementById('groq-badge').className = 'p-badge badge-connected';
+  }
 
-    function addMessage(role, text) {
-      removeWelcome();
-      const area = document.getElementById('chatArea');
-      const row = document.createElement('div');
-      row.className = `msg-row ${role}`;
+  setStatus('Ready! Type or tap 🎤 to start practicing');
+}
 
-      const av = document.createElement('div');
-      av.className = 'msg-avatar';
-      av.textContent = role === 'ai' ? 'A' : 'You';
+// ══════════════════════════
+//  CHAT
+// ══════════════════════════
+function removeWelcome() {
+  document.getElementById('welcome')?.remove();
+}
 
-      const bub = document.createElement('div');
-      bub.className = 'bubble';
+function addMessage(role, text) {
+  removeWelcome();
+  const area = document.getElementById('chatArea');
+  const row  = document.createElement('div');
+  row.className = `msg-row ${role}`;
 
-      const corr = text.match(/💡 Correction:(.*)/s);
-      if (corr) {
-        bub.textContent = text.replace(/💡 Correction:[\s\S]*/, '').trim();
-        const tag = document.createElement('div');
-        tag.className = 'correction';
-        tag.textContent = '💡' + corr[0].replace('💡', '');
-        bub.appendChild(tag);
-      } else {
-        bub.textContent = text;
-      }
+  const av = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.textContent = role === 'ai' ? 'A' : 'You';
 
-      row.appendChild(av); row.appendChild(bub);
-      area.appendChild(row);
-      area.scrollTop = area.scrollHeight;
-    }
+  const bub = document.createElement('div');
+  bub.className = 'bubble';
 
-    function addTyping() {
-      removeWelcome();
-      const area = document.getElementById('chatArea');
-      const row = document.createElement('div');
-      row.className = 'typing-row'; row.id = 'typing';
-      const av = document.createElement('div');
-      av.className = 'msg-avatar'; av.textContent = 'A';
-      av.style.cssText = 'background:linear-gradient(135deg,#4285F4,#8B5CF6);color:#fff;border-radius:9px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;';
-      const bub = document.createElement('div');
-      bub.className = 'typing-bubble';
-      bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
-      row.appendChild(av); row.appendChild(bub);
-      area.appendChild(row); area.scrollTop = area.scrollHeight;
-    }
+  const corrMatch = text.match(/💡 Correction:([\s\S]*)/);
+  if (corrMatch) {
+    bub.textContent = text.replace(/💡 Correction:[\s\S]*/, '').trim();
+    const tag = document.createElement('div');
+    tag.className = 'correction';
+    tag.textContent = '💡 Correction:' + corrMatch[1];
+    bub.appendChild(tag);
+  } else {
+    bub.textContent = text;
+  }
 
-    function removeTyping() {
-      const t = document.getElementById('typing');
-      if (t) t.remove();
-    }
+  row.appendChild(av);
+  row.appendChild(bub);
+  area.appendChild(row);
+  area.scrollTop = area.scrollHeight;
+}
 
-    async function sendMsg() {
-      if (!cfg.active) { showToast('Please connect a provider first ←', 'error'); return; }
-      const inp = document.getElementById('msgInput');
-      const txt = inp.value.trim();
-      if (!txt) return;
+function addTyping() {
+  removeWelcome();
+  const area = document.getElementById('chatArea');
+  const row  = document.createElement('div');
+  row.className = 'typing-row'; row.id = 'typing-indicator';
+  const av  = document.createElement('div');
+  av.className = 'msg-avatar';
+  av.style.cssText = 'background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:9px;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:Syne,sans-serif';
+  av.textContent = 'A';
+  const bub = document.createElement('div');
+  bub.className = 'typing-bubble';
+  bub.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+  row.appendChild(av); row.appendChild(bub);
+  area.appendChild(row); area.scrollTop = area.scrollHeight;
+}
+function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
 
-      inp.value = ''; inp.style.height = 'auto';
-      addMessage('user', txt);
-      history.push({ role: 'user', content: txt });
-      addTyping();
-      document.getElementById('sendBtn').disabled = true;
-      setStatus('Aria is thinking…');
+async function sendMsg() {
+  if (!cfg.active) {
+    showToast('Pick a provider first — tap ☰ menu', 'info');
+    return;
+  }
+  const inp = document.getElementById('msgInput');
+  const txt = inp.value.trim();
+  if (!txt) return;
 
-      try {
-        const reply = await callAPI(txt);
-        removeTyping();
-        history.push({ role: 'assistant', content: reply });
-        addMessage('ai', reply);
-        if (voiceOn) speak(reply);
-        setStatus('Your turn — type or speak 🎤');
-      } catch (e) {
-        removeTyping();
-        setStatus('Error: ' + e.message);
-        showToast(e.message, 'error');
-      } finally {
-        document.getElementById('sendBtn').disabled = false;
-      }
-    }
+  inp.value = ''; inp.style.height = 'auto';
+  addMessage('user', txt);
+  history.push({role:'user', content:txt});
+  addTyping();
+  document.getElementById('sendBtn').disabled = true;
+  setStatus('Aria is thinking…');
 
-    // ─── API CALLS ───
-    async function callAPI(userMsg) {
-      const p = cfg.active;
-      const key = cfg[p]?.key;
-      const model = cfg[p]?.model;
-      if (!key) throw new Error('No API key saved for ' + PROVIDERS[p].name);
-      if (!model) throw new Error('No model selected for ' + PROVIDERS[p].name);
+  try {
+    const reply = await callAPI();
+    removeTyping();
+    history.push({role:'assistant', content:reply});
+    addMessage('ai', reply);
+    if (voiceOn) speak(reply);
+    setStatus('Your turn — type or 🎤 speak');
+  } catch(e) {
+    removeTyping();
+    console.error('[Aria API Error]', e);
+    setStatus('Something went wrong. Check your key or try again.');
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
 
-      if (p === 'gemini') return callGemini(key, model);
-      if (p === 'anthropic') return callAnthropic(key, model);
-      return callOpenAICompat(key, model, p);
-    }
+// ══════════════════════════
+//  API CALLS
+// ══════════════════════════
+async function callAPI() {
+  const p     = cfg.active;
+  const key   = (p === 'groq' && (!cfg.groq?.key || cfg.groq.key === 'YOUR_GROQ_KEY_HERE'))
+                  ? GROQ_BUILTIN_KEY
+                  : cfg[p]?.key;
+  const model = cfg[p]?.model || (p === 'groq' ? GROQ_BUILTIN_MODEL : null);
 
-    async function callGemini(key, model) {
-      // Gemini REST API requires alternating user/model roles.
-      const contents = [];
-      let lastRole = null;
-      history.forEach(m => {
-        const role = m.role === 'assistant' ? 'model' : 'user';
-        if (role !== lastRole) {
-          contents.push({ role, parts: [{ text: m.content }] });
-          lastRole = role;
-        } else {
-          // Merge consecutive messages with same role
-          contents[contents.length - 1].parts[0].text += "\n" + m.content;
-        }
-      });
+  if (!key)   throw new Error('No key for ' + p);
+  if (!model) throw new Error('No model for ' + p);
 
-      const body = {
+  if (p === 'gemini')    return callGemini(key, model);
+  if (p === 'anthropic') return callAnthropic(key, model);
+  return callOpenAICompat(key, model, p);
+}
+
+async function callGemini(key, model) {
+  const contents = [];
+  let lastRole = null;
+  history.forEach(m => {
+    const role = m.role === 'assistant' ? 'model' : 'user';
+    if (role !== lastRole) { contents.push({role, parts:[{text:m.content}]}); lastRole = role; }
+    else contents[contents.length-1].parts[0].text += '\n' + m.content;
+  });
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    { method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
         contents,
-        system_instruction: { parts: [{ text: SYSTEM }] },
-        generation_config: {
-          max_output_tokens: 500,
-          temperature: 0.8
-        }
-      };
-
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        }
-      );
-
-      const d = await res.json();
-      if (!res.ok) {
-        throw new Error(d.error?.message || `Gemini Error: ${res.status}`);
-      }
-
-      if (d.candidates?.[0]?.finishReason === 'SAFETY') {
-        throw new Error('Response blocked by safety filters. Please try a different topic.');
-      }
-
-      return d.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+        system_instruction:{parts:[{text:SYSTEM}]},
+        generation_config:{max_output_tokens:500, temperature:0.8}
+      })
     }
+  );
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || 'Gemini error ' + res.status);
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || '…';
+}
 
-    async function callOpenAICompat(key, model, provider) {
-      // Ensure alternating roles for strict providers
-      const msgs = [{ role: 'system', content: SYSTEM }];
-      let lastRole = 'system';
-      history.forEach(m => {
-        const role = m.role === 'assistant' ? 'assistant' : 'user';
-        if (role !== lastRole) {
-          msgs.push({ role, content: m.content });
-          lastRole = role;
-        } else {
-          msgs[msgs.length - 1].content += "\n" + m.content;
-        }
-      });
+async function callOpenAICompat(key, model, provider) {
+  const msgs = [{role:'system', content:SYSTEM}];
+  let lastRole = 'system';
+  history.forEach(m => {
+    const role = m.role === 'assistant' ? 'assistant' : 'user';
+    if (role !== lastRole) { msgs.push({role, content:m.content}); lastRole = role; }
+    else msgs[msgs.length-1].content += '\n' + m.content;
+  });
+  const headers = {'Content-Type':'application/json','Authorization':'Bearer '+key};
+  if (provider === 'openrouter') {
+    headers['HTTP-Referer'] = 'https://aria-english.app';
+    headers['X-Title'] = 'Aria English Practice';
+  }
+  const endpoint = provider === 'groq'
+    ? 'https://api.groq.com/openai/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/chat/completions';
+  const res = await fetch(endpoint, {
+    method:'POST', headers,
+    body:JSON.stringify({model, messages:msgs, max_tokens:500, temperature:0.8})
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || `${provider} error ${res.status}`);
+  return d.choices?.[0]?.message?.content || '…';
+}
 
-      const headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key };
-      if (provider === 'openrouter') {
-        headers['HTTP-Referer'] = 'https://aria-english.app';
-        headers['X-Title'] = 'Aria English Practice';
-      }
-      const endpoint = provider === 'groq'
-        ? 'https://api.groq.com/openai/v1/chat/completions'
-        : 'https://openrouter.ai/api/v1/chat/completions';
+async function callAnthropic(key, model) {
+  const msgs = [];
+  let lastRole = null;
+  history.forEach(m => {
+    const role = m.role === 'assistant' ? 'assistant' : 'user';
+    if (role !== lastRole) { msgs.push({role, content:m.content}); lastRole = role; }
+    else msgs[msgs.length-1].content += '\n' + m.content;
+  });
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model, max_tokens:500, system:SYSTEM, messages:msgs})
+  });
+  const d = await res.json();
+  if (!res.ok) throw new Error(d.error?.message || 'Anthropic error ' + res.status);
+  return d.content?.[0]?.text || '…';
+}
 
-      const res = await fetch(endpoint, {
-        method: 'POST', headers,
-        body: JSON.stringify({ model, messages: msgs, max_tokens: 500, temperature: 0.8 })
-      });
+// ══════════════════════════
+//  VOICE (Browser TTS — fast)
+// ══════════════════════════
+function speak(text) {
+  if (!voiceOn || !window.speechSynthesis) return;
+  const clean = text.replace(/💡 Correction:[\s\S]*/,'').replace(/[*_~`#]/g,'').trim();
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(clean);
+  utt.rate = 0.95; utt.pitch = 1.0; utt.volume = 1.0;
+  const vs = window.speechSynthesis.getVoices();
+  // prefer clear English voice
+  const v =
+    vs.find(x => /en-IN/i.test(x.lang) && /female/i.test(x.name)) ||
+    vs.find(x => /en-US/i.test(x.lang) && /female|aria|zira|samantha|karen/i.test(x.name)) ||
+    vs.find(x => /en-GB/i.test(x.lang)) ||
+    vs.find(x => /en/i.test(x.lang)) ||
+    vs[0];
+  if (v) utt.voice = v;
+  if (autoListen) {
+    utt.onend = () => { if (!isListening) setTimeout(startMic, 500); };
+  }
+  window.speechSynthesis.speak(utt);
+}
 
-      const d = await res.json();
-      if (!res.ok) {
-        throw new Error(d.error?.message || d.error || `API Error: ${res.status}`);
-      }
-      return d.choices?.[0]?.message?.content || 'No response';
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  localStorage.setItem('aria_voice', voiceOn);
+  if (!voiceOn) { window.speechSynthesis?.cancel(); if(autoListen) toggleAutoListen(); }
+  updateVoiceUI();
+}
+function updateVoiceUI() {
+  document.getElementById('voiceSw').className = 'tog-sw' + (voiceOn ? ' on' : '');
+  document.getElementById('voiceBtn').textContent = voiceOn ? '🔊' : '🔇';
+  document.getElementById('voiceBtn').className   = 'icon-btn' + (voiceOn ? ' voice-active' : '');
+}
+
+function toggleAutoListen() {
+  if (!voiceOn) { showToast('Enable Voice first', 'info'); return; }
+  autoListen = !autoListen;
+  localStorage.setItem('aria_auto', autoListen);
+  updateAutoUI();
+}
+function updateAutoUI() {
+  document.getElementById('autoSw').className = 'tog-sw' + (autoListen ? ' on' : '');
+}
+
+// ══════════════════════════
+//  MIC / SPEECH RECOGNITION
+// ══════════════════════════
+function toggleMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('Speech input needs Chrome or Edge', 'info'); return; }
+  isListening ? stopMic() : startMic();
+}
+
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  recognition.onstart = () => {
+    isListening = true;
+    document.getElementById('micBtn').classList.add('listening');
+    document.getElementById('micBtn').textContent = '⏹';
+    document.getElementById('recOverlay').classList.add('show');
+    setStatus('Listening… speak clearly');
+  };
+
+  recognition.onresult = e => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) final += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
     }
+    document.getElementById('msgInput').value = final || interim;
+    if (final) { stopMic(); setTimeout(sendMsg, 300); }
+  };
 
-    async function callAnthropic(key, model) {
-      // Anthropic requires alternating user/assistant roles.
-      const msgs = [];
-      let lastRole = null;
-      history.forEach(m => {
-        const role = m.role === 'assistant' ? 'assistant' : 'user';
-        if (role !== lastRole) {
-          msgs.push({ role, content: m.content });
-          lastRole = role;
-        } else {
-          msgs[msgs.length - 1].content += "\n" + m.content;
-        }
-      });
+  recognition.onerror = e => {
+    console.error('[Mic error]', e.error);
+    if (e.error !== 'no-speech') showToast('Mic: ' + e.error, 'info');
+    stopMic();
+  };
 
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': key,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({ model, max_tokens: 500, system: SYSTEM, messages: msgs })
-      });
+  recognition.onend = () => { if (isListening) stopMic(); };
+  recognition.start();
+}
 
-      const d = await res.json();
-      if (!res.ok) {
-        throw new Error(d.error?.message || `Anthropic Error: ${res.status}`);
-      }
-      return d.content?.[0]?.text || 'No response';
-    }
+function stopMic() {
+  isListening = false;
+  try { recognition?.stop(); } catch(e) {}
+  document.getElementById('micBtn').classList.remove('listening');
+  document.getElementById('micBtn').textContent = '🎤';
+  document.getElementById('recOverlay').classList.remove('show');
+  if (!document.getElementById('msgInput').value)
+    setStatus('Your turn — type or 🎤 speak');
+}
 
-    // ─── VOICE ───
-    function speak(text) {
-      if (!window.speechSynthesis || !voiceOn) return;
-      const clean = text.replace(/💡 Correction:[\s\S]*/, '').replace(/[*_~`]/g, '').trim();
-      window.speechSynthesis.cancel();
-      const utt = new SpeechSynthesisUtterance(clean);
-      utt.rate = 0.95; utt.pitch = 1.0; utt.volume = 1.0;
+// ══════════════════════════
+//  UI HELPERS
+// ══════════════════════════
+function onKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
+function resize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
+function toggleEye(id,btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type==='password' ? 'text' : 'password';
+  btn.textContent = inp.type==='password' ? '👁' : '🙈';
+}
+function clearChat() {
+  history = [];
+  window.speechSynthesis?.cancel();
+  document.getElementById('chatArea').innerHTML =
+    '<div class="welcome" id="welcome"><div class="welcome-glow">A</div><h2>Chat cleared ✓</h2><p>Start a fresh conversation!</p></div>';
+}
+function sendShortcut(el) {
+  const txt = el.textContent.trim().replace(/^.\s/,'');
+  document.getElementById('msgInput').value = txt;
+  sendMsg();
+}
+function useQuick(el) {
+  document.getElementById('msgInput').value = el.textContent.trim();
+  sendMsg();
+}
+function setStatus(m) {
+  const el = document.getElementById('statusMsg');
+  if (el) el.textContent = m;
+}
 
-      const vs = window.speechSynthesis.getVoices();
-      // STRICT PRIORITY: Female Indian English -> Any Female -> Fallback
-      const v = vs.find(x => /en-IN/i.test(x.lang) && /female|aria|samantha|karen|priya/i.test(x.name))
-        || vs.find(x => /female|aria|samantha|karen|zira|victoria/i.test(x.name))
-        || vs.find(x => /en-IN/i.test(x.lang))
-        || vs[0];
-      if (v) utt.voice = v;
+// ── Sidebar (mobile) ──
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebarOverlay').classList.add('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
 
-      if (autoListen) {
-        utt.onend = () => { if (!isListening) setTimeout(startMic, 400); };
-      }
-      window.speechSynthesis.speak(utt);
-    }
-
-    function toggleVoiceOutput() {
-      voiceOn = !voiceOn;
-      localStorage.setItem('aria_voice', voiceOn);
-      updateVoiceUI();
-      if (!voiceOn) {
-        window.speechSynthesis?.cancel();
-        if (autoListen) toggleAutoListen(); // Disable auto-listen if voice is off
-      }
-    }
-    function updateVoiceUI() {
-      const t = document.getElementById('voiceToggle');
-      const b = document.getElementById('voiceBtn');
-      if (t) t.className = 'toggle-switch' + (voiceOn ? ' on' : '');
-      if (b) b.textContent = voiceOn ? '🔊' : '🔇';
-    }
-
-    function toggleAutoListen() {
-      if (!voiceOn) { showToast('Enable Voice Reply first to use Hands-free', 'error'); return; }
-      autoListen = !autoListen;
-      localStorage.setItem('aria_auto', autoListen);
-      updateAutoListenUI();
-      if (autoListen) showToast('Hands-free mode active 🎤', 'success');
-    }
-    function updateAutoListenUI() {
-      const t = document.getElementById('autoToggle');
-      if (t) t.className = 'toggle-switch' + (autoListen ? ' on' : '');
-    }
-
-    if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
-
-    document.addEventListener('click', () => {
-      navigator.mediaDevices.getUserMedia({ audio: true }).catch(() => { });
-    }, { once: true });
-
-    function toggleMic() {
-      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        showToast('Speech recognition needs Chrome or Edge browser', 'error'); return;
-      }
-      isListening ? stopMic() : startMic();
-    }
-
-    function startMic() {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SR();
-      recognition.continuous = false; recognition.interimResults = true; recognition.lang = 'en-US';
-
-      recognition.onstart = () => {
-        isListening = true;
-        document.getElementById('micBtn').classList.add('listening');
-        document.getElementById('micBtn').textContent = '⏹';
-        document.getElementById('recOverlay').classList.add('show');
-        setStatus('Listening… speak clearly in English');
-      };
-      recognition.onresult = e => {
-        let interim = '', final = '';
-        for (let i = e.resultIndex; i < e.results.length; i++) {
-          if (e.results[i].isFinal) final += e.results[i][0].transcript;
-          else interim += e.results[i][0].transcript;
-        }
-        document.getElementById('msgInput').value = final || interim;
-        if (final) { stopMic(); setTimeout(sendMsg, 350); }
-      };
-      recognition.onerror = e => { showToast('Mic error: ' + e.error, 'error'); stopMic(); };
-      recognition.onend = () => { if (isListening) stopMic(); };
-      recognition.start();
-    }
-
-    function stopMic() {
-      isListening = false;
-      try { recognition?.stop(); } catch (e) { }
-      document.getElementById('micBtn').classList.remove('listening');
-      document.getElementById('micBtn').textContent = '🎤';
-      document.getElementById('recOverlay').classList.remove('show');
-      if (!document.getElementById('msgInput').value) setStatus('Your turn — type or speak 🎤');
-    }
-
-    // ─── LAYOUT ───
-    function toggleSidebar() {
-      const sb = document.getElementById('sidebar');
-      sb.classList.toggle('collapsed');
-    }
-
-    function closeSidebarIfMobile() {
-      if (window.innerWidth <= 768) {
-        document.getElementById('sidebar').classList.add('collapsed');
-      }
-    }
-
-    function sendShortcut(el) {
-      const txt = el.innerText.replace(/^[^\s]+\s/, ''); // remove icon
-      document.getElementById('msgInput').value = txt;
-      sendMsg();
-      closeSidebarIfMobile();
-    }
-
-    function useQuick(el) {
-      document.getElementById('msgInput').value = el.innerText;
-      sendMsg();
-    }
-
-    // ─── UI HELPERS ───
-    function onKey(e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-    }
-    function resize(el) {
-      el.style.height = 'auto';
-      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-    }
-    function toggleEye(id, btn) {
-      const inp = document.getElementById(id);
-      inp.type = inp.type === 'password' ? 'text' : 'password';
-      btn.textContent = inp.type === 'password' ? '👁' : '🙈';
-    }
-    function clearChat() {
-      history = [];
-      document.getElementById('chatArea').innerHTML = '<div class="welcome" id="welcome"><div class="welcome-glow">A</div><h2>Chat cleared ✓</h2><p>Ready to start a fresh conversation!</p></div>';
-      window.speechSynthesis?.cancel();
-    }
-    function setStatus(m) { document.getElementById('statusMsg').textContent = m; }
-
-    let toastTimer;
-    function showToast(msg, type = '') {
-      const t = document.getElementById('toast');
-      t.textContent = (type === 'success' ? '✓  ' : type === 'error' ? '✕  ' : '') + msg;
-      t.className = 'toast show ' + (type || '');
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => t.className = 'toast', 3200);
-    }
-  </script>
+// ── Toast ──
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast', 3000);
+}
+</script>
 </body>
-
 </html>
