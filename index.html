@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Aira — English Practice AI</title>
+<title>Aria — English Practice AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -138,27 +138,12 @@ body {
 }
 .pcard.open .p-chevron { transform:rotate(180deg); }
 
-/* Groq built-in (no key needed) */
-.pcard[data-p="groq"] .p-chevron { display:none; }
-.pcard[data-p="groq"] .pcard-header { cursor:default; }
-
-.groq-builtin-row {
-  display:flex; align-items:center; gap:8px;
-  padding:0 13px 12px; margin-top:-4px;
+/* Groq note badge */
+.groq-note {
+  font-size:10px; color:#ea580c; background:#fff3ec;
+  border:1px solid #fcd9c0; border-radius:6px;
+  padding:4px 8px; margin-bottom:8px; display:block;
 }
-.groq-builtin-row .use-groq-btn {
-  flex:1; padding:8px; border-radius:8px; border:none;
-  background:linear-gradient(135deg,#ea580c,#f97316);
-  color:#fff; font-family:'Syne',sans-serif; font-weight:600; font-size:12px;
-  cursor:pointer; transition:opacity .15s, transform .1s;
-  box-shadow:0 3px 10px rgba(234,88,12,.3);
-}
-.groq-builtin-row .use-groq-btn:hover { opacity:.88; transform:scale(1.01); }
-.groq-key-edit {
-  display:flex; align-items:center; gap:4px;
-  font-size:10px; color:var(--dim); cursor:pointer; white-space:nowrap;
-}
-.groq-key-edit:hover { color:var(--indigo); }
 
 /* Accordion body */
 .pcard-body {
@@ -509,7 +494,7 @@ textarea::placeholder { color:#b0b8d8; }
     <div class="logo">
       <div class="logo-mark">A</div>
       <div>
-        <h1>Aira</h1>
+        <h1>Aria</h1>
         <div class="logo-sub">English Practice AI</div>
       </div>
     </div>
@@ -527,24 +512,16 @@ textarea::placeholder { color:#b0b8d8; }
     <div class="sec-label">AI Provider</div>
     <div class="providers">
 
-      <!-- ── GROQ (Built-in) ── -->
-      <div class="pcard" data-p="groq" style="--p-color:#ea580c">
+      <!-- ── GROQ (Built-in, accordion) ── -->
+      <div class="pcard" data-p="groq" style="--p-color:#ea580c" id="card-groq">
         <div class="pcard-header" onclick="toggleCard('groq')">
-        <div class="pcard-header">
           <div class="p-icon" style="background:#fff3ec;color:#ea580c;border:1.5px solid #fcd9c0">⚡</div>
           <div class="p-name">Groq</div>
           <span class="p-badge badge-builtin" id="groq-badge">Built-in</span>
+          <div class="p-chevron">▾</div>
         </div>
-        <div class="groq-builtin-row">
-          <button class="use-groq-btn" onclick="activateGroq()">⚡ Use Groq (No Key Needed)</button>
-          <div class="groq-key-edit" onclick="toggleGroqEdit()" title="Change key">⚙ key</div>
-        </div>
-        <div class="groq-edit" id="groqEdit">
-          <div class="field-label">Custom Groq Key <span class="field-hint">• console.groq.com</span></div>
-          <div class="key-wrap">
-            <input type="password" id="key-groq" placeholder="gsk_..." autocomplete="off">
-            <button class="eye-btn" onclick="toggleEye('key-groq',this)">👁</button>
-          </div>
+        <div class="pcard-body">
+          <span class="groq-note">🔑 Key is pre-configured — no input needed</span>
           <div class="field-label">Model</div>
           <div class="sel-wrap">
             <select id="model-groq">
@@ -554,8 +531,7 @@ textarea::placeholder { color:#b0b8d8; }
               <option value="gemma2-9b-it">Gemma 2 9B 💎</option>
             </select>
           </div>
-          <button class="connect-btn" style="background:#ea580c" onclick="saveProvider('groq')">Save Custom Key</button>
-        </div>
+          <button class="connect-btn" style="background:#ea580c;margin-top:10px" onclick="activateGroq()">⚡ Use Groq Free</button>
         </div>
       </div>
 
@@ -576,9 +552,9 @@ textarea::placeholder { color:#b0b8d8; }
           <div class="field-label">Model</div>
           <div class="sel-wrap">
             <select id="model-gemini">
-              <option value="gemini-2.0-flash">Gemini 2.0 Flash ⚡ (Fastest, Free)</option>
+              <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash ⚡ (Latest, Free)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash 🚀 (Stable)</option>
               <option value="gemini-1.5-pro">Gemini 1.5 Pro 🧠 (Smartest)</option>
-              <option value="gemini-1.5-flash">Gemini 1.5 Flash 🚀</option>
             </select>
           </div>
           <button class="connect-btn" onclick="saveProvider('gemini')">✓ Connect Gemini</button>
@@ -602,11 +578,11 @@ textarea::placeholder { color:#b0b8d8; }
           <div class="field-label">Model <span class="field-hint">:free = no cost</span></div>
           <div class="sel-wrap">
             <select id="model-openrouter">
-              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🆓</option>
-              <option value="google/gemini-2.0-flash-exp:free">Gemini 2.0 Flash 🆓</option>
-              <option value="deepseek/deepseek-r1:free">DeepSeek R1 🆓</option>
+              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🆓 (Best Free)</option>
+              <option value="deepseek/deepseek-r1:free">DeepSeek R1 🆓 (Reasoning)</option>
               <option value="qwen/qwen-2.5-72b-instruct:free">Qwen 2.5 72B 🆓</option>
-              <option value="mistralai/mistral-7b-instruct:free">Mistral 7B 🆓</option>
+              <option value="mistralai/mistral-7b-instruct:free">Mistral 7B 🆓 (Fast)</option>
+              <option value="google/gemma-3-12b-it:free">Gemma 3 12B 🆓</option>
             </select>
           </div>
           <button class="connect-btn" onclick="saveProvider('openrouter')">✓ Connect OpenRouter</button>
@@ -763,8 +739,11 @@ window.addEventListener('DOMContentLoaded', () => {
     if (s.key)   { const el = document.getElementById('key-'+p);   if(el) el.value = s.key; }
     if (s.model) { const el = document.getElementById('model-'+p); if(el) el.value = s.model; }
   });
-  if (cfg.groq?.key) document.getElementById('key-groq').value = cfg.groq.key;
-  if (cfg.groq?.model) document.getElementById('model-groq').value = cfg.groq.model;
+  // restore groq model only (key is built-in, not shown)
+  if (cfg.groq?.model) {
+    const el = document.getElementById('model-groq');
+    if (el) el.value = cfg.groq.model;
+  }
 
   updateVoiceUI();
   updateAutoUI();
@@ -773,8 +752,11 @@ window.addEventListener('DOMContentLoaded', () => {
   if (cfg.active) {
     activateProvider(cfg.active);
   } else {
-    // Auto-connect Groq if built-in key is set
-    if (GROQ_BUILTIN_KEY && GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE') {
+    // Auto-connect Groq if built-in key is properly injected
+    const keyOk = GROQ_BUILTIN_KEY &&
+                  GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE' &&
+                  GROQ_BUILTIN_KEY !== '__GROQ_API_KEY__';
+    if (keyOk) {
       activateGroq();
     }
   }
@@ -795,37 +777,35 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ── Groq built-in activate ──
 function activateGroq() {
-  const customKey   = document.getElementById('key-groq').value.trim();
-  const customModel = document.getElementById('model-groq').value;
-  const key   = customKey   || GROQ_BUILTIN_KEY;
-  const model = customModel || GROQ_BUILTIN_MODEL;
+  const model   = document.getElementById('model-groq').value || GROQ_BUILTIN_MODEL;
+  const builtinOk = GROQ_BUILTIN_KEY &&
+                    GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE' &&
+                    GROQ_BUILTIN_KEY !== '__GROQ_API_KEY__';
+  const key = builtinOk ? GROQ_BUILTIN_KEY : (cfg.groq?.key || '');
 
-  if (!key || key === 'YOUR_GROQ_KEY_HERE') {
-    showToast('Add your Groq key in the ⚙ key section', 'info');
-    toggleGroqEdit();
+  if (!key) {
+    showToast('Groq key not injected yet. Deploy via GitHub Actions first.', 'info');
     return;
   }
-  cfg.groq = {key, model};
+  cfg.groq   = { key, model };
   cfg.active = 'groq';
   localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
   activateProvider('groq');
+  document.getElementById('card-groq')?.classList.remove('open');
   closeSidebar();
 }
 
-function toggleGroqEdit() {
-  const el = document.getElementById('groqEdit');
-  el.classList.toggle('show');
-}
-
-// ── Provider accordion toggle ──
+// ── Provider accordion toggle (all 4 cards) ──
 function toggleCard(p) {
   const card = document.getElementById('card-'+p);
   if (!card) return;
-  // close others
-  ['gemini','openrouter','anthropic'].forEach(op => {
-    if (op !== p) document.getElementById('card-'+op)?.classList.remove('open');
+  const isOpen = card.classList.contains('open');
+  // close all
+  ['groq','gemini','openrouter','anthropic'].forEach(op => {
+    document.getElementById('card-'+op)?.classList.remove('open');
   });
-  card.classList.toggle('open');
+  // open clicked one only if it was closed
+  if (!isOpen) card.classList.add('open');
 }
 
 // ── Save provider (Gemini / OpenRouter / Anthropic) ──
@@ -945,10 +925,25 @@ async function sendMsg() {
   } catch(e) {
     removeTyping();
     console.error('[Aria API Error]', e);
-    setStatus('Something went wrong. Check your key or try again.');
+    // Show the real error message so user knows what happened
+    const msg = e.message || 'Unknown error';
+    showErrorBubble(msg);
+    setStatus('❌ Error — see message above');
+    showToast(msg, 'info');
   } finally {
     document.getElementById('sendBtn').disabled = false;
   }
+}
+
+// Show error as a visible chat bubble (not hidden in console)
+function showErrorBubble(msg) {
+  removeWelcome();
+  const area = document.getElementById('chatArea');
+  const div  = document.createElement('div');
+  div.style.cssText = 'align-self:center;background:#fff1f1;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;font-size:12.5px;color:#991b1b;max-width:500px;width:100%;line-height:1.6;animation:msgIn .22s ease';
+  div.innerHTML = `<strong>⚠️ Error:</strong> ${msg}<br><span style="color:#b91c1c;font-size:11px;margin-top:4px;display:block">Check browser console (F12) for full details.</span>`;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
 }
 
 // ══════════════════════════
@@ -956,13 +951,25 @@ async function sendMsg() {
 // ══════════════════════════
 async function callAPI() {
   const p     = cfg.active;
-  const key   = (p === 'groq' && (!cfg.groq?.key || cfg.groq.key === 'YOUR_GROQ_KEY_HERE'))
-                  ? GROQ_BUILTIN_KEY
-                  : cfg[p]?.key;
+  const storedKey = cfg[p]?.key;
+  const builtinOk = GROQ_BUILTIN_KEY &&
+                    GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE' &&
+                    GROQ_BUILTIN_KEY !== '__GROQ_API_KEY__';  // catch un-injected placeholder
+
+  const key   = (p === 'groq' && (!storedKey))
+                  ? (builtinOk ? GROQ_BUILTIN_KEY : null)
+                  : storedKey;
   const model = cfg[p]?.model || (p === 'groq' ? GROQ_BUILTIN_MODEL : null);
 
-  if (!key)   throw new Error('No key for ' + p);
-  if (!model) throw new Error('No model for ' + p);
+  if (!key) {
+    if (p === 'groq' && !builtinOk) {
+      throw new Error('Groq API key not injected. Go to ☰ menu → Groq → ⚙ key and paste your key manually. Get one free at console.groq.com');
+    }
+    throw new Error('No API key found for ' + p + '. Open ☰ menu and connect a provider.');
+  }
+  if (!model) throw new Error('No model selected for ' + p);
+
+  console.log(`[Aria] Calling ${p} with model: ${model}, key: ${key.slice(0,8)}...`);
 
   if (p === 'gemini')    return callGemini(key, model);
   if (p === 'anthropic') return callAnthropic(key, model);
