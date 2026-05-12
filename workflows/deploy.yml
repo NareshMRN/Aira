@@ -3,8 +3,8 @@ name: Deploy Aria to GitHub Pages
 on:
   push:
     branches:
-      - main          # runs every time you push to main
-  workflow_dispatch:  # allows manual trigger from GitHub UI
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -24,27 +24,57 @@ jobs:
 
     steps:
 
-      # 1. Check out your code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Inject the Groq API key from GitHub Secrets into index.html
-      - name: Inject Groq API Key
+      - name: Check Secret Exists
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
-          sed -i "s|__GROQ_API_KEY__|${{ secrets.GROQ_API_KEY }}|g" index.html
-          echo "✅ Key injected successfully"
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "❌ GROQ_API_KEY secret is not set!"
+            exit 1
+          fi
+          echo "✅ GROQ_API_KEY found (${#GROQ_API_KEY} chars)"
 
-      # 3. Set up GitHub Pages
+      # Python handles any special characters in the key safely
+      - name: Inject Groq API Key
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          python3 - <<'EOF'
+          import os, sys
+
+          key = os.environ.get('GROQ_API_KEY', '')
+          if not key:
+              print("❌ Key is empty!")
+              sys.exit(1)
+
+          with open('index.html', 'r', encoding='utf-8') as f:
+              content = f.read()
+
+          if '__GROQ_API_KEY__' not in content:
+              print("❌ Placeholder __GROQ_API_KEY__ not found in index.html!")
+              sys.exit(1)
+
+          content = content.replace('__GROQ_API_KEY__', key)
+
+          with open('index.html', 'w', encoding='utf-8') as f:
+              f.write(content)
+
+          print(f"✅ Key injected successfully ({len(key)} chars)")
+          EOF
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # 4. Upload the built site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'        # uploads everything in root (index.html etc.)
+          path: '.'
 
-      # 5. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+YAML
+echo "Done"
