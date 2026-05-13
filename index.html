@@ -199,6 +199,24 @@ body {
 .connect-btn:hover { opacity:.88; }
 .connect-btn:active { transform:scale(.98); }
 
+/* Saved key display */
+.key-saved-box {
+  display:flex; align-items:center; justify-content:space-between;
+  background:#f0fdf4; border:1.5px solid #6ee7b7;
+  border-radius:8px; padding:8px 10px; gap:8px;
+}
+.key-saved-label {
+  display:flex; align-items:center; gap:6px;
+  font-size:11.5px; color:#065f46; font-weight:600;
+}
+.key-new-btn {
+  font-size:10px; font-weight:600; padding:3px 9px;
+  border-radius:6px; border:1.5px solid #6ee7b7;
+  background:#fff; color:#065f46; cursor:pointer;
+  transition:all .15s; white-space:nowrap;
+}
+.key-new-btn:hover { background:#d1fae5; border-color:#34d399; }
+
 /* Shortcuts */
 .shortcuts { display:flex; flex-direction:column; gap:6px; }
 .shortcut {
@@ -574,19 +592,29 @@ textarea::placeholder { color:#b0b8d8; }
           <span class="p-badge badge-free">Free</span>
           <div class="p-chevron">▾</div>
         </div>
-        <div class="pcard-body">
-          <div class="field-label">API Key <span class="field-hint">• aistudio.google.com</span></div>
-          <div class="key-wrap">
-            <input type="password" id="key-gemini" placeholder="AIza..." autocomplete="off">
-            <button class="eye-btn" onclick="toggleEye('key-gemini',this)">👁</button>
+        <div class="pcard-body" id="body-gemini">
+          <div id="key-input-gemini">
+            <div class="field-label">API Key <span class="field-hint">• aistudio.google.com</span></div>
+            <div class="key-wrap">
+              <input type="password" id="key-gemini" placeholder="AIza..." autocomplete="off">
+            </div>
+            <button class="connect-btn" onclick="saveProviderKey('gemini')">💾 Save Key</button>
           </div>
-          <div class="field-label">Model</div>
+          <div id="key-saved-gemini" style="display:none">
+            <div class="key-saved-box">
+              <div class="key-saved-label">🔑 Key saved securely</div>
+              <button class="key-new-btn" onclick="replaceKey('gemini')">Add new key</button>
+            </div>
+          </div>
+          <div class="field-label" style="margin-top:10px">Model</div>
           <div class="sel-wrap">
             <select id="model-gemini">
-              <option value="gemini-2.5-flash">Gemini 2.5 Flash ⚡ (Latest, Free)</option>
+              <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 Flash ⚡ (Latest, Free)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash 🚀 (Stable)</option>
+              <option value="gemini-1.5-pro">Gemini 1.5 Pro 🧠 (Smartest)</option>
             </select>
           </div>
-          <button class="connect-btn" onclick="saveProvider('gemini')">✓ Connect Gemini</button>
+          <button class="connect-btn" onclick="connectProvider('gemini')">✓ Connect Gemini</button>
         </div>
       </div>
 
@@ -598,13 +626,21 @@ textarea::placeholder { color:#b0b8d8; }
           <span class="p-badge badge-free">Free</span>
           <div class="p-chevron">▾</div>
         </div>
-        <div class="pcard-body">
-          <div class="field-label">API Key <span class="field-hint">• openrouter.ai</span></div>
-          <div class="key-wrap">
-            <input type="password" id="key-openrouter" placeholder="sk-or-..." autocomplete="off">
-            <button class="eye-btn" onclick="toggleEye('key-openrouter',this)">👁</button>
+        <div class="pcard-body" id="body-openrouter">
+          <div id="key-input-openrouter">
+            <div class="field-label">API Key <span class="field-hint">• openrouter.ai</span></div>
+            <div class="key-wrap">
+              <input type="password" id="key-openrouter" placeholder="sk-or-..." autocomplete="off">
+            </div>
+            <button class="connect-btn" onclick="saveProviderKey('openrouter')">💾 Save Key</button>
           </div>
-          <div class="field-label">Model <span class="field-hint">:free = no cost</span></div>
+          <div id="key-saved-openrouter" style="display:none">
+            <div class="key-saved-box">
+              <div class="key-saved-label">🔑 Key saved securely</div>
+              <button class="key-new-btn" onclick="replaceKey('openrouter')">Add new key</button>
+            </div>
+          </div>
+          <div class="field-label" style="margin-top:10px">Model <span class="field-hint">:free = no cost</span></div>
           <div class="sel-wrap">
             <select id="model-openrouter">
               <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B 🆓 (Best Free)</option>
@@ -614,7 +650,7 @@ textarea::placeholder { color:#b0b8d8; }
               <option value="google/gemma-3-12b-it:free">Gemma 3 12B 🆓</option>
             </select>
           </div>
-          <button class="connect-btn" onclick="saveProvider('openrouter')">✓ Connect OpenRouter</button>
+          <button class="connect-btn" onclick="connectProvider('openrouter')">✓ Connect OpenRouter</button>
         </div>
       </div>
 
@@ -626,13 +662,21 @@ textarea::placeholder { color:#b0b8d8; }
           <span class="p-badge badge-paid">$5 Free</span>
           <div class="p-chevron">▾</div>
         </div>
-        <div class="pcard-body">
-          <div class="field-label">API Key <span class="field-hint" style="color:#fbbf24">• console.anthropic.com</span></div>
-          <div class="key-wrap">
-            <input type="password" id="key-anthropic" placeholder="sk-ant-..." autocomplete="off">
-            <button class="eye-btn" onclick="toggleEye('key-anthropic',this)">👁</button>
+        <div class="pcard-body" id="body-anthropic">
+          <div id="key-input-anthropic">
+            <div class="field-label">API Key <span class="field-hint" style="color:#fbbf24">• console.anthropic.com</span></div>
+            <div class="key-wrap">
+              <input type="password" id="key-anthropic" placeholder="sk-ant-..." autocomplete="off">
+            </div>
+            <button class="connect-btn" onclick="saveProviderKey('anthropic')">💾 Save Key</button>
           </div>
-          <div class="field-label">Model</div>
+          <div id="key-saved-anthropic" style="display:none">
+            <div class="key-saved-box">
+              <div class="key-saved-label">🔑 Key saved securely</div>
+              <button class="key-new-btn" onclick="replaceKey('anthropic')">Add new key</button>
+            </div>
+          </div>
+          <div class="field-label" style="margin-top:10px">Model</div>
           <div class="sel-wrap">
             <select id="model-anthropic">
               <option value="claude-3-5-sonnet-20241022">Claude 3.5 Sonnet 🧠</option>
@@ -640,7 +684,7 @@ textarea::placeholder { color:#b0b8d8; }
               <option value="claude-3-opus-20240229">Claude 3 Opus 👑</option>
             </select>
           </div>
-          <button class="connect-btn" onclick="saveProvider('anthropic')">✓ Connect Claude</button>
+          <button class="connect-btn" onclick="connectProvider('anthropic')">✓ Connect Claude</button>
         </div>
       </div>
 
@@ -771,17 +815,26 @@ const PROVIDERS = {
 
 // ── Init ──
 window.addEventListener('DOMContentLoaded', () => {
-  // restore saved keys
+  // ── Clean up any stale bad Groq key in localStorage ──
+  const BAD = ['', 'YOUR_GROQ_KEY_HERE', '__GROQ_API_KEY__'];
+  if (cfg.groq?.key && BAD.includes(cfg.groq.key)) {
+    delete cfg.groq.key;  // wipe the bad cached key
+    localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
+  }
+
+  // restore model selects only (keys are never shown again once saved)
   ['gemini','openrouter','anthropic'].forEach(p => {
     const s = cfg[p] || {};
-    if (s.key)   { const el = document.getElementById('key-'+p);   if(el) el.value = s.key; }
     if (s.model) { const el = document.getElementById('model-'+p); if(el) el.value = s.model; }
   });
-  // restore groq model only (key is built-in, not shown)
+  // restore groq model only
   if (cfg.groq?.model) {
     const el = document.getElementById('model-groq');
     if (el) el.value = cfg.groq.model;
   }
+
+  // Show "Key saved" state for any provider that already has a key
+  renderSavedKeys();
 
   updateVoiceUI();
   updateAutoUI();
@@ -815,16 +868,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // ── Groq built-in activate ──
 function activateGroq() {
-  const model   = document.getElementById('model-groq').value || GROQ_BUILTIN_MODEL;
-  const builtinOk = GROQ_BUILTIN_KEY &&
-                    GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE' &&
-                    GROQ_BUILTIN_KEY !== '__GROQ_API_KEY__';
-  const key = builtinOk ? GROQ_BUILTIN_KEY : (cfg.groq?.key || '');
+  const model    = document.getElementById('model-groq').value || GROQ_BUILTIN_MODEL;
+  const BAD      = ['', 'YOUR_GROQ_KEY_HERE', '__GROQ_API_KEY__'];
+  const builtinOk= !BAD.includes(GROQ_BUILTIN_KEY);
+  const key      = builtinOk ? GROQ_BUILTIN_KEY : '';
 
   if (!key) {
     showToast('Groq key not injected yet. Deploy via GitHub Actions first.', 'info');
     return;
   }
+  // Store the REAL key (never store placeholder)
   cfg.groq   = { key, model };
   cfg.active = 'groq';
   localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
@@ -846,17 +899,51 @@ function toggleCard(p) {
   if (!isOpen) card.classList.add('open');
 }
 
-// ── Save provider (Gemini / OpenRouter / Anthropic) ──
-function saveProvider(p) {
-  const key   = document.getElementById('key-'+p)?.value.trim();
-  const model = document.getElementById('model-'+p)?.value;
+// ── Save key to localStorage (without connecting yet) ──
+function saveProviderKey(p) {
+  const inp = document.getElementById('key-'+p);
+  const key = inp?.value.trim();
   if (!key) { showToast('Please enter your API key first', 'info'); return; }
-  cfg[p] = {key, model};
-  cfg.active = p;
+
+  if (!cfg[p]) cfg[p] = {};
+  cfg[p].key = key;
+  localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
+
+  // Show saved state, hide input
+  document.getElementById('key-input-'+p).style.display = 'none';
+  document.getElementById('key-saved-'+p).style.display  = 'block';
+  inp.value = ''; // clear from DOM immediately — key is now only in localStorage
+  showToast('Key saved 🔒 Now tap Connect', 'info');
+}
+
+// ── Connect with saved key ──
+function connectProvider(p) {
+  const key   = cfg[p]?.key;
+  const model = document.getElementById('model-'+p)?.value;
+  if (!key) { showToast('Save your API key first ↑', 'info'); return; }
+  cfg[p].model = model;
+  cfg.active   = p;
   localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
   activateProvider(p);
-  if (p !== 'groq') document.getElementById('card-'+p)?.classList.remove('open');
+  document.getElementById('card-'+p)?.classList.remove('open');
   closeSidebar();
+}
+
+// ── Replace key — show input again ──
+function replaceKey(p) {
+  document.getElementById('key-input-'+p).style.display = 'block';
+  document.getElementById('key-saved-'+p).style.display  = 'none';
+  document.getElementById('key-'+p)?.focus();
+}
+
+// ── Render saved state on init ──
+function renderSavedKeys() {
+  ['gemini','openrouter','anthropic'].forEach(p => {
+    if (cfg[p]?.key) {
+      document.getElementById('key-input-'+p).style.display = 'none';
+      document.getElementById('key-saved-'+p).style.display  = 'block';
+    }
+  });
 }
 
 // ── Activate a provider in UI ──
@@ -951,7 +1038,7 @@ async function sendMsg() {
   history.push({role:'user', content:txt});
   addTyping();
   document.getElementById('sendBtn').disabled = true;
-  setStatus('Aria is thinking…');
+  setStatus('Aira is thinking…');
 
   try {
     const reply = await callAPI();
@@ -962,7 +1049,7 @@ async function sendMsg() {
     setStatus('Your turn — type or 🎤 speak');
   } catch(e) {
     removeTyping();
-    console.error('[Aria API Error]', e);
+    console.error('[Aira API Error]', e);
     // Show the real error message so user knows what happened
     const msg = e.message || 'Unknown error';
     showErrorBubble(msg);
@@ -988,15 +1075,25 @@ function showErrorBubble(msg) {
 //  API CALLS
 // ══════════════════════════
 async function callAPI() {
-  const p     = cfg.active;
-  const storedKey = cfg[p]?.key;
-  const builtinOk = GROQ_BUILTIN_KEY &&
-                    GROQ_BUILTIN_KEY !== 'YOUR_GROQ_KEY_HERE' &&
-                    GROQ_BUILTIN_KEY !== '__GROQ_API_KEY__';  // catch un-injected placeholder
+  const p        = cfg.active;
+  const storedKey= cfg[p]?.key;
+  const BAD      = ['', 'YOUR_GROQ_KEY_HERE', '__GROQ_API_KEY__'];
+  const builtinOk= !BAD.includes(GROQ_BUILTIN_KEY);
 
-  const key   = (p === 'groq' && (!storedKey))
-                  ? (builtinOk ? GROQ_BUILTIN_KEY : null)
-                  : storedKey;
+  // For Groq: ALWAYS prefer the freshly injected built-in key.
+  // Never trust localStorage for Groq — it may have cached a bad placeholder.
+  let key;
+  if (p === 'groq') {
+    key = builtinOk ? GROQ_BUILTIN_KEY : (BAD.includes(storedKey) ? null : storedKey);
+    // Also fix stale localStorage so it doesn't keep causing issues
+    if (builtinOk && BAD.includes(storedKey)) {
+      cfg.groq = { ...cfg.groq, key: GROQ_BUILTIN_KEY };
+      localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
+    }
+  } else {
+    key = storedKey;
+  }
+
   const model = cfg[p]?.model || (p === 'groq' ? GROQ_BUILTIN_MODEL : null);
 
   if (!key) {
@@ -1007,7 +1104,7 @@ async function callAPI() {
   }
   if (!model) throw new Error('No model selected for ' + p);
 
-  console.log(`[Aria] Calling ${p} with model: ${model}, key: ${key.slice(0,8)}...`);
+  console.log(`[Aira] Calling ${p} with model: ${model}, key: ${key.slice(0,8)}...`);
 
   if (p === 'gemini')    return callGemini(key, model);
   if (p === 'anthropic') return callAnthropic(key, model);
@@ -1048,7 +1145,7 @@ async function callOpenAICompat(key, model, provider) {
   const headers = {'Content-Type':'application/json','Authorization':'Bearer '+key};
   if (provider === 'openrouter') {
     headers['HTTP-Referer'] = 'https://aria-english.app';
-    headers['X-Title'] = 'Aria English Practice';
+    headers['X-Title'] = 'Aira English Practice';
   }
   const endpoint = provider === 'groq'
     ? 'https://api.groq.com/openai/v1/chat/completions'
