@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Aira — English Practice AI</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -21,18 +21,30 @@
   --indigo:   #4f46e5;
   --violet:   #7c3aed;
   --green:    #10b981;
+  /* Safe area insets for notch/home-bar devices */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-html,body { height:100%; }
+html {
+  height: 100%;
+  /* Prevent iOS rubber-band bounce on the root */
+  overflow: hidden;
+}
 
 body {
   font-family:'Instrument Sans',sans-serif;
   background:var(--bg);
   color:var(--text);
-  height:100vh;
+  /* Use dvh (dynamic viewport height) — handles mobile browser chrome correctly */
+  height: 100dvh;
+  /* Fallback for browsers without dvh */
+  height: 100vh;
   display:flex;
   overflow:hidden;
   font-size:14px;
+  /* Prevent tap highlight flicker on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ═══════════════════════════════
@@ -92,13 +104,11 @@ body {
 .stext { font-size:11px; color:var(--muted); }
 .stext strong { color:var(--text); font-weight:600; }
 
-/* Section label */
 .sec-label {
   font-size:10px; font-weight:700; letter-spacing:1.1px;
   color:var(--dim); text-transform:uppercase; margin:0 0 10px;
 }
 
-/* ── Provider cards (accordion) ── */
 .providers { display:flex; flex-direction:column; gap:7px; margin-bottom:20px; }
 
 .pcard {
@@ -138,14 +148,6 @@ body {
 }
 .pcard.open .p-chevron { transform:rotate(180deg); }
 
-/* Groq note badge */
-.groq-note {
-  font-size:10px; color:#ea580c; background:#fff3ec;
-  border:1px solid #fcd9c0; border-radius:6px;
-  padding:4px 8px; margin-bottom:8px; display:block;
-}
-
-/* Accordion body */
 .pcard-body {
   max-height:0; overflow:hidden;
   transition:max-height .3s cubic-bezier(.4,0,.2,1), padding .3s;
@@ -170,11 +172,6 @@ body {
 }
 .key-wrap input:focus { border-color:var(--indigo); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
 .key-wrap input::placeholder { color:#b0b8d8; }
-.eye-btn {
-  position:absolute; right:8px; top:50%; transform:translateY(-50%);
-  background:none; border:none; cursor:pointer; color:#9da3c0; font-size:12px; padding:2px;
-}
-.eye-btn:hover { color:var(--indigo); }
 
 .sel-wrap select {
   width:100%; background:#fff; border:1.5px solid #d1d5f0;
@@ -199,7 +196,6 @@ body {
 .connect-btn:hover { opacity:.88; }
 .connect-btn:active { transform:scale(.98); }
 
-/* Saved key display */
 .key-saved-box {
   display:flex; align-items:center; justify-content:space-between;
   background:#f0fdf4; border:1.5px solid #6ee7b7;
@@ -217,7 +213,6 @@ body {
 }
 .key-new-btn:hover { background:#d1fae5; border-color:#34d399; }
 
-/* Shortcuts */
 .shortcuts { display:flex; flex-direction:column; gap:6px; }
 .shortcut {
   padding:9px 12px; background:#fff; border:1.5px solid #e0e4f5;
@@ -227,9 +222,18 @@ body {
 .shortcut:hover { background:#eef1ff; border-color:#a5b0e8; color:var(--indigo); transform:translateX(3px); }
 
 /* ═══════════════════════════════
-   MAIN AREA
+   MAIN AREA — KEY FIX: flex column filling full height
 ═══════════════════════════════ */
-.main { flex:1; display:flex; flex-direction:column; min-width:0; }
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* This is the critical fix: main must be exactly viewport height */
+  height: 100dvh;
+  height: 100vh; /* fallback */
+  overflow: hidden;
+}
 
 /* Top bar */
 .topbar {
@@ -265,12 +269,20 @@ body {
 .icon-btn:hover { background:#eef1ff; color:var(--indigo); border-color:#a5b0e8; transform:scale(1.08); }
 .icon-btn.voice-active { background:#eef1ff; color:var(--indigo); border-color:#a5b0e8; }
 
-/* Chat */
+/* Chat — fills all remaining space between topbar and input-zone */
 .chat-area {
-  flex:1; overflow-y:auto;
-  padding:24px 24px;
-  display:flex; flex-direction:column; gap:18px;
-  scroll-behavior:smooth; background:var(--bg);
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  scroll-behavior: smooth;
+  background: var(--bg);
+  /* Prevent iOS momentum scrolling from leaking */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 .chat-area::-webkit-scrollbar { width:4px; }
 .chat-area::-webkit-scrollbar-thumb { background:#c7d0f0; border-radius:4px; }
@@ -279,6 +291,8 @@ body {
 .welcome {
   display:flex; flex-direction:column; align-items:center;
   justify-content:center; flex:1; text-align:center; padding:40px 16px;
+  /* Min-height so it centres properly even on small screens */
+  min-height: 200px;
 }
 .welcome-glow {
   width:76px; height:76px; border-radius:22px; margin-bottom:18px;
@@ -340,16 +354,21 @@ body {
 @keyframes blink { 0%,80%,100%{opacity:.25} 40%{opacity:1} }
 
 /* ═══════════════════════════════
-   INPUT ZONE
+   INPUT ZONE — stays pinned at bottom
 ═══════════════════════════════ */
 .input-zone {
-  padding:14px 20px 16px;
-  border-top:1px solid #e2e6f5;
-  background:#fff; flex-shrink:0;
-  box-shadow:0 -2px 12px rgba(99,102,241,.06);
+  padding: 12px 16px 14px;
+  /* Add safe-area padding for home-bar iPhones */
+  padding-bottom: calc(14px + var(--safe-bottom));
+  border-top: 1px solid #e2e6f5;
+  background: #fff;
+  /* Never shrink below its natural height */
+  flex-shrink: 0;
+  box-shadow: 0 -2px 12px rgba(99,102,241,.06);
 }
+
 .quick-row {
-  display:flex; gap:6px; overflow-x:auto; margin-bottom:11px;
+  display:flex; gap:6px; overflow-x:auto; margin-bottom:10px;
   scrollbar-width:none; -webkit-overflow-scrolling:touch;
 }
 .quick-row::-webkit-scrollbar { display:none; }
@@ -370,6 +389,8 @@ textarea {
   padding:11px 14px; resize:none; outline:none;
   max-height:110px; min-height:44px;
   transition:border-color .15s, box-shadow .15s;
+  /* Prevent iOS zoom on focus (requires font-size >= 16px OR explicit disable) */
+  font-size: 16px;
 }
 textarea:focus { border-color:var(--indigo); background:#fff; box-shadow:0 0 0 3px rgba(79,70,229,.1); }
 textarea::placeholder { color:#b0b8d8; }
@@ -434,11 +455,11 @@ textarea::placeholder { color:#b0b8d8; }
 /* Mobile toggle buttons in topbar */
 .topbar-tog {
   display:none;
-  align-items:center; gap:6px;
+  align-items:center; gap:5px;
   font-size:10px; color:var(--muted); cursor:pointer; user-select:none;
   background:var(--surf2); border:1.5px solid #e0e4f5;
-  border-radius:8px; padding:4px 8px;
-  transition:all .15s;
+  border-radius:8px; padding:5px 8px;
+  transition:all .15s; white-space:nowrap;
 }
 .topbar-tog.on { background:#eef1ff; border-color:#a5b0e8; color:var(--indigo); }
 .topbar-tog-dot { width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; transition:background .2s; }
@@ -463,72 +484,119 @@ textarea::placeholder { color:#b0b8d8; }
   backdrop-filter:blur(2px);
 }
 
-/* Groq edit panel (hidden by default) */
-.groq-edit { display:none; padding:0 13px 12px; }
-.groq-edit.show { display:block; }
-
 /* ═══════════════════════════════
    RESPONSIVE — MOBILE
+   Key principle: body = 100dvh, main = flex column,
+   chat-area = flex:1 (stretches), input-zone = flex-shrink:0 (pinned)
 ═══════════════════════════════ */
 @media (max-width: 680px) {
-  body { flex-direction:column; overflow:hidden; }
+  body {
+    flex-direction: column;
+    overflow: hidden;
+    /* dvh is critical here — it excludes the browser chrome (address bar) */
+    height: 100dvh;
+    height: 100vh; /* fallback */
+  }
 
   .sidebar {
-    position:fixed; top:0; left:0; bottom:0;
-    transform:translateX(-100%);
-    box-shadow:4px 0 24px rgba(0,0,0,.15);
-    width:290px; z-index:200;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 24px rgba(0,0,0,.15);
+    width: 290px;
+    max-width: 90vw;
+    z-index: 200;
+    /* Sidebar itself scrolls internally, not the page */
+    overflow-y: auto;
   }
-  .sidebar.open { transform:translateX(0); }
-  .sidebar-close { display:flex; align-items:center; justify-content:center; }
-  .sidebar-overlay { display:block; opacity:0; pointer-events:none; transition:opacity .28s; }
-  .sidebar-overlay.show { opacity:1; pointer-events:auto; }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-close { display: flex; align-items: center; justify-content: center; }
+  .sidebar-overlay { display: block; opacity: 0; pointer-events: none; transition: opacity .28s; }
+  .sidebar-overlay.show { opacity: 1; pointer-events: auto; }
 
-  .hamburger { display:flex; align-items:center; justify-content:center; }
-  .main { height:100vh; flex:1; display:flex; flex-direction:column; }
+  .hamburger { display: flex; align-items: center; justify-content: center; }
 
-  /* Topbar — compact, show mobile toggles */
-  .topbar { padding:8px 12px; gap:6px; }
-  .provider-pill { font-size:11px; padding:4px 8px 4px 6px; }
-  .model-badge { display:none; }
-  .topbar-tog { display:flex; }
-  /* hide the icon-btn voice on mobile (replaced by topbar-tog) */
-  #voiceBtn { display:none; }
+  /* Main fills entire screen, column layout */
+  .main {
+    width: 100%;
+    height: 100dvh;
+    height: 100vh; /* fallback */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 
-  /* Chat */
-  .chat-area { padding:12px 12px; gap:12px; flex:1; }
-  .msg-row { max-width:100%; }
-  .bubble { font-size:13px; padding:10px 13px; }
+  /* Topbar — compact */
+  .topbar {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .provider-pill { font-size: 11px; padding: 4px 9px 4px 7px; }
+  .model-badge { display: none; }
+  /* Show mobile toggle pills */
+  .topbar-tog { display: flex; }
+  /* Hide desktop voice icon button on mobile */
+  #voiceBtn { display: none; }
 
-  /* Input zone — as slim as possible */
-  .input-zone { padding:8px 12px 10px; flex-shrink:0; }
-  .quick-row { margin-bottom:8px; gap:5px; }
-  .quick { font-size:10.5px; padding:4px 9px; }
-  .input-row { gap:7px; }
-  textarea { font-size:13px; padding:9px 11px; min-height:40px; }
-  .btn-mic, .btn-send { width:40px; height:40px; font-size:16px; }
+  /* Chat area — this is the scrollable region, grows to fill space */
+  .chat-area {
+    flex: 1;
+    min-height: 0; /* critical: allows flex child to shrink below content size */
+    padding: 14px 12px;
+    gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 
-  /* Status row — hide toggles (they're in topbar now), show only status text */
-  .status-row { margin-top:6px; }
-  .toggles { display:none; }
-  .status-msg { font-size:10.5px; }
+  .msg-row { max-width: 100%; }
+  .bubble { font-size: 13px; padding: 10px 13px; }
 
-  .welcome { padding:24px 14px; }
-  .welcome-glow { width:60px; height:60px; font-size:24px; }
-  .welcome h2 { font-size:18px; }
-  .welcome p { font-size:12.5px; }
+  /* Input zone — always visible at bottom, never clipped */
+  .input-zone {
+    flex-shrink: 0;
+    padding: 10px 12px;
+    padding-bottom: calc(10px + var(--safe-bottom));
+  }
 
-  .toast { right:10px; bottom:10px; left:10px; max-width:unset; font-size:11.5px; }
+  .quick-row { margin-bottom: 8px; gap: 5px; }
+  .quick { font-size: 10.5px; padding: 5px 10px; }
+  .input-row { gap: 7px; }
+
+  textarea {
+    font-size: 16px; /* Prevents iOS auto-zoom on focus */
+    padding: 10px 12px;
+    min-height: 44px;
+  }
+
+  .btn-mic, .btn-send { width: 44px; height: 44px; }
+
+  /* Status row — hide desktop toggles (they're in topbar now) */
+  .status-row { margin-top: 6px; }
+  .toggles { display: none; }
+  .status-msg { font-size: 10.5px; }
+
+  .welcome { padding: 20px 14px; min-height: 0; }
+  .welcome-glow { width: 64px; height: 64px; font-size: 26px; margin-bottom: 14px; }
+  .welcome h2 { font-size: 19px; }
+  .welcome p { font-size: 12.5px; }
+  .welcome-hint { font-size: 11.5px; margin-top: 10px; }
+
+  .toast { right: 10px; bottom: calc(10px + var(--safe-bottom)); left: 10px; max-width: unset; font-size: 11.5px; }
 }
 
+/* Very small screens (320px) */
 @media (max-width: 380px) {
-  .topbar { padding:7px 10px; gap:4px; }
-  .topbar-tog span { display:none; } /* show only dot on very small screens */
-  .topbar-tog { padding:5px 6px; }
-  .chat-area { padding:10px 10px; }
-  .input-zone { padding:7px 10px 9px; }
-  .bubble { font-size:12.5px; }
-  .btn-mic, .btn-send { width:38px; height:38px; }
+  .topbar { padding: 8px 10px; gap: 5px; }
+  /* On very narrow screens hide toggle text, show only dot */
+  .topbar-tog span { display: none; }
+  .topbar-tog { padding: 6px 7px; }
+  .chat-area { padding: 10px 10px; }
+  .input-zone { padding: 8px 10px; padding-bottom: calc(8px + var(--safe-bottom)); }
+  .quick { font-size: 10px; padding: 4px 8px; }
+  .bubble { font-size: 12.5px; }
+  textarea { font-size: 16px; padding: 9px 10px; }
+  .btn-mic, .btn-send { width: 42px; height: 42px; }
 }
 </style>
 </head>
@@ -552,7 +620,6 @@ textarea::placeholder { color:#b0b8d8; }
 
   <div class="sidebar-body">
 
-    <!-- Connection status -->
     <div class="conn-status">
       <div class="sdot" id="sdot"></div>
       <div class="stext" id="stext">Select a provider to begin</div>
@@ -725,10 +792,10 @@ textarea::placeholder { color:#b0b8d8; }
     </div>
     <div class="model-badge" id="modelBadge">Select a provider →</div>
     <div class="topbar-right">
-      <!-- Mobile-only toggle buttons -->
+      <!-- Mobile-only toggle pills -->
       <div class="topbar-tog" id="topbarAuto" onclick="toggleAutoListen()" title="Hands-free">
         <div class="topbar-tog-dot"></div>
-        <span>Hands-free</span>
+        <span>Auto</span>
       </div>
       <div class="topbar-tog on" id="topbarVoice" onclick="toggleVoice()" title="Voice output">
         <div class="topbar-tog-dot"></div>
@@ -739,15 +806,17 @@ textarea::placeholder { color:#b0b8d8; }
     </div>
   </div>
 
+  <!-- Chat area grows to fill all space between topbar and input-zone -->
   <div class="chat-area" id="chatArea">
     <div class="welcome" id="welcome">
       <div class="welcome-glow">A</div>
       <h2>Hello! I'm Aira ✦</h2>
-      <p>Your personal English practice partner. Groq is built-in — just tap <strong>⚡ Use Groq</strong> and start talking!</p>
+      <p>Your personal English practice partner. Connect a provider from the ☰ menu and start talking!</p>
       <div class="welcome-hint">🎤 Speak or type — I'll correct your English gently and keep the chat going.</div>
     </div>
   </div>
 
+  <!-- Input zone — pinned to bottom -->
   <div class="input-zone">
     <div class="quick-row">
       <div class="quick" onclick="useQuick(this)">What does "eloquent" mean?</div>
@@ -772,7 +841,7 @@ textarea::placeholder { color:#b0b8d8; }
     </div>
 
     <div class="status-row">
-      <div class="status-msg" id="statusMsg">Connect a provider from the menu ←</div>
+      <div class="status-msg" id="statusMsg">Connect a provider from the ☰ menu</div>
       <div class="toggles">
         <div class="tog-item" onclick="toggleAutoListen()">
           <span>Hands-free</span>
@@ -793,7 +862,6 @@ textarea::placeholder { color:#b0b8d8; }
 <script>
 const GROQ_BUILTIN_MODEL = 'llama-3.3-70b-versatile';
 
-// ── System prompt ──
 const SYSTEM = `You are Aira, a warm, patient English conversation partner helping someone practice English daily.
 Rules:
 1. Have natural, engaging conversations on any topic.
@@ -805,7 +873,6 @@ Rules:
 6. Be warm, encouraging, friendly. Celebrate their effort.
 7. If they write in another language, reply in English and encourage them to try in English.`;
 
-// ── State ──
 let cfg        = JSON.parse(localStorage.getItem('aria_cfg2') || '{}');
 let history    = [];
 let isListening= false;
@@ -820,41 +887,35 @@ const PROVIDERS = {
   anthropic:  { name:'Anthropic Claude',color:'#b45309' }
 };
 
-// ── Init ──
 window.addEventListener('DOMContentLoaded', () => {
-  // restore model selects
   ['groq','gemini','openrouter','anthropic'].forEach(p => {
     const s = cfg[p] || {};
     if (s.model) { const el = document.getElementById('model-'+p); if(el) el.value = s.model; }
   });
-
-  // Show saved-key state for any provider that already has a key
   renderSavedKeys();
-
   updateVoiceUI();
   updateAutoUI();
-
-  // Auto-activate last used provider
-  if (cfg.active) {
-    activateProvider(cfg.active);
-  }
-
-  // Preload voices
+  if (cfg.active) activateProvider(cfg.active);
   if (window.speechSynthesis) {
     window.speechSynthesis.getVoices();
     window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
   }
-
-  // Mic permission on first interaction
   document.body.addEventListener('click', () => {
     navigator.mediaDevices?.getUserMedia({audio:true})
       .then(s => s.getTracks().forEach(t => t.stop()))
       .catch(e => console.log('Mic permission:', e.message));
   }, {once:true});
+
+  // Fix: on mobile, when virtual keyboard opens, scroll chat to bottom
+  // so the input zone stays visible
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const chatArea = document.getElementById('chatArea');
+      chatArea.scrollTop = chatArea.scrollHeight;
+    });
+  }
 });
 
-// ── Groq built-in activate ──
-// ── Provider accordion toggle (all 4 cards) ──
 function toggleCard(p) {
   const card = document.getElementById('card-'+p);
   if (!card) return;
@@ -865,23 +926,19 @@ function toggleCard(p) {
   if (!isOpen) card.classList.add('open');
 }
 
-// ── Save key to localStorage (without connecting yet) ──
 function saveProviderKey(p) {
   const inp = document.getElementById('key-'+p);
   const key = inp?.value.trim();
   if (!key) { showToast('Please enter your API key first', 'info'); return; }
-
   if (!cfg[p]) cfg[p] = {};
   cfg[p].key = key;
   localStorage.setItem('aria_cfg2', JSON.stringify(cfg));
-
   document.getElementById('key-input-'+p).style.display = 'none';
   document.getElementById('key-saved-'+p).style.display  = 'block';
-  inp.value = ''; // wipe from DOM — key only lives in localStorage
+  inp.value = '';
   showToast('Key saved 🔒 Now tap Connect', 'info');
 }
 
-// ── Connect with saved key ──
 function connectProvider(p) {
   const key   = cfg[p]?.key;
   const model = document.getElementById('model-'+p)?.value;
@@ -894,14 +951,12 @@ function connectProvider(p) {
   closeSidebar();
 }
 
-// ── Replace key — show input again ──
 function replaceKey(p) {
   document.getElementById('key-input-'+p).style.display = 'block';
   document.getElementById('key-saved-'+p).style.display  = 'none';
   document.getElementById('key-'+p)?.focus();
 }
 
-// ── Render saved state on init ──
 function renderSavedKeys() {
   ['groq','gemini','openrouter','anthropic'].forEach(p => {
     if (cfg[p]?.key) {
@@ -913,33 +968,24 @@ function renderSavedKeys() {
   });
 }
 
-// ── Activate a provider in UI ──
 function activateProvider(p) {
   const info = PROVIDERS[p];
   if (!info) return;
   cfg.active = p;
-
   document.getElementById('sdot').className = 'sdot on';
   document.getElementById('stext').innerHTML = `Connected to <strong>${info.name}</strong>`;
   document.getElementById('pillDot').style.background = info.color;
   document.getElementById('pillLabel').textContent = info.name;
-
   const model = cfg[p]?.model || GROQ_BUILTIN_MODEL;
   document.getElementById('modelBadge').textContent =
     model.split('/').pop().replace(':free','').replace(/-\d{8}$/,'');
-
-  // mark connected badge on groq
   if (p === 'groq') {
     document.getElementById('groq-badge').textContent = '✓ Active';
     document.getElementById('groq-badge').className = 'p-badge badge-connected';
   }
-
   setStatus('Ready! Type or tap 🎤 to start practicing');
 }
 
-// ══════════════════════════
-//  CHAT
-// ══════════════════════════
 function removeWelcome() {
   document.getElementById('welcome')?.remove();
 }
@@ -949,14 +995,11 @@ function addMessage(role, text) {
   const area = document.getElementById('chatArea');
   const row  = document.createElement('div');
   row.className = `msg-row ${role}`;
-
   const av = document.createElement('div');
   av.className = 'msg-avatar';
   av.textContent = role === 'ai' ? 'A' : 'You';
-
   const bub = document.createElement('div');
   bub.className = 'bubble';
-
   const corrMatch = text.match(/💡 Correction:([\s\S]*)/);
   if (corrMatch) {
     bub.textContent = text.replace(/💡 Correction:[\s\S]*/, '').trim();
@@ -967,7 +1010,6 @@ function addMessage(role, text) {
   } else {
     bub.textContent = text;
   }
-
   row.appendChild(av);
   row.appendChild(bub);
   area.appendChild(row);
@@ -992,21 +1034,16 @@ function addTyping() {
 function removeTyping() { document.getElementById('typing-indicator')?.remove(); }
 
 async function sendMsg() {
-  if (!cfg.active) {
-    showToast('Pick a provider first — tap ☰ menu', 'info');
-    return;
-  }
+  if (!cfg.active) { showToast('Pick a provider first — tap ☰ menu', 'info'); return; }
   const inp = document.getElementById('msgInput');
   const txt = inp.value.trim();
   if (!txt) return;
-
   inp.value = ''; inp.style.height = 'auto';
   addMessage('user', txt);
   history.push({role:'user', content:txt});
   addTyping();
   document.getElementById('sendBtn').disabled = true;
   setStatus('Aira is thinking…');
-
   try {
     const reply = await callAPI();
     removeTyping();
@@ -1017,7 +1054,6 @@ async function sendMsg() {
   } catch(e) {
     removeTyping();
     console.error('[Aira API Error]', e);
-    // Show the real error message so user knows what happened
     const msg = e.message || 'Unknown error';
     showErrorBubble(msg);
     setStatus('❌ Error — see message above');
@@ -1027,7 +1063,6 @@ async function sendMsg() {
   }
 }
 
-// Show error as a visible chat bubble (not hidden in console)
 function showErrorBubble(msg) {
   removeWelcome();
   const area = document.getElementById('chatArea');
@@ -1038,26 +1073,16 @@ function showErrorBubble(msg) {
   area.scrollTop = area.scrollHeight;
 }
 
-// ══════════════════════════
-//  API CALLS
-// ══════════════════════════
 async function callAPI() {
   const p     = cfg.active;
   const key   = cfg[p]?.key;
   const model = cfg[p]?.model || (p === 'groq' ? GROQ_BUILTIN_MODEL : null);
-
   if (!key)   throw new Error('No API key saved for ' + p + '. Open ☰ and save your key first.');
   if (!model) throw new Error('No model selected for ' + p);
-
-  console.log(`[Aira] Calling ${p} | model: ${model} | key: ${key.slice(0,8)}...`);
-
   if (p === 'gemini')    return callGemini(key, model);
   if (p === 'anthropic') return callAnthropic(key, model);
   return callOpenAICompat(key, model, p);
 }
-
-
-
 
 async function callGemini(key, model) {
   const contents = [];
@@ -1130,9 +1155,6 @@ async function callAnthropic(key, model) {
   return d.content?.[0]?.text || '…';
 }
 
-// ══════════════════════════
-//  VOICE (Browser TTS — fast)
-// ══════════════════════════
 function speak(text) {
   if (!voiceOn || !window.speechSynthesis) return;
   const clean = text.replace(/💡 Correction:[\s\S]*/,'').replace(/[*_~`#]/g,'').trim();
@@ -1140,7 +1162,6 @@ function speak(text) {
   const utt = new SpeechSynthesisUtterance(clean);
   utt.rate = 0.95; utt.pitch = 1.0; utt.volume = 1.0;
   const vs = window.speechSynthesis.getVoices();
-  // prefer clear English voice
   const v =
     vs.find(x => /en-IN/i.test(x.lang) && /female/i.test(x.name)) ||
     vs.find(x => /en-US/i.test(x.lang) && /female|aria|zira|samantha|karen/i.test(x.name)) ||
@@ -1164,7 +1185,6 @@ function updateVoiceUI() {
   document.getElementById('voiceSw').className = 'tog-sw' + (voiceOn ? ' on' : '');
   document.getElementById('voiceBtn').textContent = voiceOn ? '🔊' : '🔇';
   document.getElementById('voiceBtn').className   = 'icon-btn' + (voiceOn ? ' voice-active' : '');
-  // sync mobile topbar pill
   const tv = document.getElementById('topbarVoice');
   if (tv) {
     tv.classList.toggle('on', voiceOn);
@@ -1180,7 +1200,6 @@ function toggleAutoListen() {
 }
 function updateAutoUI() {
   document.getElementById('autoSw').className = 'tog-sw' + (autoListen ? ' on' : '');
-  // sync mobile topbar pill
   const ta = document.getElementById('topbarAuto');
   if (ta) {
     ta.classList.toggle('on', autoListen);
@@ -1188,9 +1207,6 @@ function updateAutoUI() {
   }
 }
 
-// ══════════════════════════
-//  MIC / SPEECH RECOGNITION
-// ══════════════════════════
 function toggleMic() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { showToast('Speech input needs Chrome or Edge', 'info'); return; }
@@ -1203,7 +1219,6 @@ function startMic() {
   recognition.continuous = false;
   recognition.interimResults = true;
   recognition.lang = 'en-US';
-
   recognition.onstart = () => {
     isListening = true;
     document.getElementById('micBtn').classList.add('listening');
@@ -1211,7 +1226,6 @@ function startMic() {
     document.getElementById('recOverlay').classList.add('show');
     setStatus('Listening… speak clearly');
   };
-
   recognition.onresult = e => {
     let interim = '', final = '';
     for (let i = e.resultIndex; i < e.results.length; i++) {
@@ -1221,13 +1235,11 @@ function startMic() {
     document.getElementById('msgInput').value = final || interim;
     if (final) { stopMic(); setTimeout(sendMsg, 300); }
   };
-
   recognition.onerror = e => {
     console.error('[Mic error]', e.error);
     if (e.error !== 'no-speech') showToast('Mic: ' + e.error, 'info');
     stopMic();
   };
-
   recognition.onend = () => { if (isListening) stopMic(); };
   recognition.start();
 }
@@ -1242,16 +1254,8 @@ function stopMic() {
     setStatus('Your turn — type or 🎤 speak');
 }
 
-// ══════════════════════════
-//  UI HELPERS
-// ══════════════════════════
 function onKey(e) { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } }
 function resize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
-function toggleEye(id,btn) {
-  const inp = document.getElementById(id);
-  inp.type = inp.type==='password' ? 'text' : 'password';
-  btn.textContent = inp.type==='password' ? '👁' : '🙈';
-}
 function clearChat() {
   history = [];
   window.speechSynthesis?.cancel();
@@ -1272,7 +1276,6 @@ function setStatus(m) {
   if (el) el.textContent = m;
 }
 
-// ── Sidebar (mobile) ──
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
   document.getElementById('sidebarOverlay').classList.add('show');
@@ -1282,7 +1285,6 @@ function closeSidebar() {
   document.getElementById('sidebarOverlay').classList.remove('show');
 }
 
-// ── Toast ──
 let toastTimer;
 function showToast(msg, type='') {
   const t = document.getElementById('toast');
