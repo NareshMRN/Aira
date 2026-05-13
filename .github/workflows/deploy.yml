@@ -30,7 +30,25 @@ jobs:
       - name: Inject Groq API Key
         env:
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python3 -c "import os; key=os.environ['GROQ_API_KEY']; f=open('index.html','r',encoding='utf-8'); c=f.read(); f.close(); assert '__GROQ_API_KEY__' in c, 'Placeholder not found!'; c=c.replace('__GROQ_API_KEY__',key); f=open('index.html','w',encoding='utf-8'); f.write(c); f.close(); print('SUCCESS: injected',len(key),'chars, starts with',key[:8])"
+        run: |
+          cat > /tmp/inject.py << 'PYEOF'
+          import os, sys
+          key = os.environ.get('GROQ_API_KEY', '').strip()
+          if not key:
+              sys.exit('ERROR: GROQ_API_KEY secret is empty or not set')
+          if '__GROQ_API_KEY__' == key:
+              sys.exit('ERROR: secret value is still the placeholder')
+          with open('index.html', 'r', encoding='utf-8') as f:
+              content = f.read()
+          if '__GROQ_API_KEY__' not in content:
+              print('WARNING: placeholder not found - already injected?')
+              sys.exit(0)
+          content = content.replace('__GROQ_API_KEY__', key)
+          with open('index.html', 'w', encoding='utf-8') as f:
+              f.write(content)
+          print('SUCCESS: Key injected -', len(key), 'chars, starts:', key[:8])
+          PYEOF
+          python3 /tmp/inject.py
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
